@@ -1,0 +1,31 @@
+{
+  "name": "playlister",
+  "version": "0.0.0",
+  "description": "Combine anything to create a cool playlist",
+  "main": "src/server/static_server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "clear && npm run static",
+    "useless": "clear && nodemon -q -x \"babel-node\" --watch ./src/server -e js ./src/server/static_server.js",
+    "static": "babel-node src/server/static_server.js",
+    "postinstall": "sudo npm i -g nodemon babel-cli"
+  },
+  "author": "David Hérault",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "babel-loader": "^6.2.1",
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-react": "^6.3.13",
+    "babel-preset-stage-2": "^6.3.13",
+    "react-hot-loader": "^1.3.0",
+    "webpack": "^1.12.11",
+    "webpack-dev-server": "^1.14.1"
+  },
+  "dependencies": {
+    "chalk": "^1.1.1",
+    "material-ui": "^0.14.2",
+    "react": "^0.14.6",
+    "react-dom": "^0.14.6",
+    "react-tap-event-plugin": "^0.2.1"
+  }
+}
