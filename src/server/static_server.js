@@ -7,7 +7,7 @@ import config from './config.js';
 const WDSPort = config.WDSPort;
 const WDSConfig = {
   entry: [
-    './src/client/app.js', 
+    './src/client/client.js', 
     'webpack/hot/only-dev-server', 
     'webpack-dev-server/client?http://localhost:' + WDSPort
   ],

@@ -140,12 +140,12 @@ class LandingPage extends React.Component {
     
     return <div style={wrapperStyle}>
       
-      <div className="row">
-        <div className="col-xs-12 col-md-6">
+      <div className="section group">
+        <div className="col span_6_of_12">
           <div className="box">
           </div>
         </div>
-        <div className="col-xs-12 col-md-6">
+        <div className="col span_6_of_12">
           <div className="box">
           
             <Paper style={paperStyle} zDepth={1}>

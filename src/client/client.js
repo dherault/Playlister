@@ -1,9 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-
 import injectTapEventPlugin from 'react-tap-event-plugin';
 
-import App from '../components/App';
+import createApp from '../createApp';
+import registerShortcuts from './registerShortcuts';
+
+console.log('hi!');
 
 // Needed for onTouchTap
 // Can go away when react 1.0 release
@@ -11,13 +13,14 @@ import App from '../components/App';
 // https://github.com/zilverline/react-tap-event-plugin
 injectTapEventPlugin();
 
-console.log('hi!');
+const { store, userInterface } = createApp(window.STATE_FROM_SERVER || {});
 
 ReactDOM.render(
-  <App />,
+  userInterface,
   document.getElementById('mount-node'),
   () => console.log('App rendered.')
 );
-// document.body.style.color = 'blue';
+
+registerShortcuts(store.getState);
 
 require('./stylesheets/app.css');
