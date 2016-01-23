@@ -19,3 +19,5 @@ ReactDOM.render(
   () => console.log('App rendered.')
 );
 // document.body.style.color = 'blue';
+
+require('./stylesheets/app.css');

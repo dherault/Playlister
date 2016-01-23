@@ -11,9 +11,9 @@ const WDSConfig = {
     'webpack/hot/only-dev-server', 
     'webpack-dev-server/client?http://localhost:' + WDSPort
   ],
-  resolve: {
-    extensions: ['', '.js', '.jsx']
-  },
+  // resolve: {
+  //   extensions: ['', '.js', '.jsx']
+  // },
   output: {
     path: require('path').resolve('./src/server/build'),
     filename: 'bundle.js',
@@ -31,6 +31,11 @@ const WDSConfig = {
         loaders: ['react-hot', 'babel'],
         exclude: /node_modules/
       },
+      { 
+        test: /\.css$/, 
+        loaders: ['style', 'css', 'postcss'],
+        exclude: /node_modules/
+      }
     ]
   },
 };
