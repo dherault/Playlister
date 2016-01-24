@@ -5,9 +5,9 @@
   "main": "src/server/static_server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "clear && npm run static",
-    "useless": "clear && nodemon -q -x \"babel-node\" --watch ./src/server -e js ./src/server/static_server.js",
+    "start": "clear && npm run static & npm run api",
     "static": "babel-node src/server/static_server.js",
+    "api": "nodemon -q -x \"babel-node\" --watch ./src -e js ./src/server/API_server.js",
     "postinstall": "sudo npm i -g nodemon babel-cli"
   },
   "author": "David Hérault",
@@ -25,11 +25,11 @@
     "webpack-dev-server": "^1.14.1"
   },
   "dependencies": {
+    "bcrypt": "^0.8.5",
     "chalk": "^1.1.1",
     "hapi": "^12.1.0",
     "material-ui": "^0.14.2",
     "mongodb": "^2.1.4",
-    "mongoose": "^4.3.6",
     "react": "^0.14.6",
     "react-dom": "^0.14.6",
     "react-redux": "^4.0.6",

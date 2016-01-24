@@ -64,10 +64,12 @@ new WDS(bundle, {
   stats: {
     colors: true
   },
-  /*proxy: [{
-    path:    new RegExp(proxyPathRegex),
-    target:  `http://localhost:${api.port}/`
-  }]*/
+  proxy: {
+    '/api/*': {
+      target: 'http://localhost:' + config.APIPort,
+      // secure: false,
+    },
+  },
 })
 
 // 0.0.0.0 because behind VM

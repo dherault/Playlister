@@ -1,4 +1,4 @@
-import log from '../utils/log';
+import log from '../utils/logger';
 import isServer from '../utils/isServer';
 import { capitaliseFirstChar } from '../utils/textUtils';
 
@@ -30,7 +30,7 @@ export default Object.assign({}, defaultCRUSActionCreators, {
 // (string or false)   auth        Authentication strategy
 function createActionCreator(shape) {
   
-  const { intention, method, path, auth } = shape;
+  const { intention, method, path } = shape;
   const types = ['REQUEST', 'SUCCESS', 'FAILURE'].map(t => `${t}_${intention.replace(/[A-Z]/g, '_$&')}`.toUpperCase());
   
   const actionCreator = params => {

@@ -1,16 +1,14 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import RaisedButton from 'material-ui/lib/raised-button';
+import { Link } from 'react-router';
 import Paper from 'material-ui/lib/paper';
-import FontIcon from 'material-ui/lib/font-icon';
-import IconButton from 'material-ui/lib/icon-button';
-import Colors from 'material-ui/lib/styles/colors';
 import TextField from 'material-ui/lib/text-field';
+import RaisedButton from 'material-ui/lib/raised-button';
 import CircularProgress from 'material-ui/lib/circular-progress';
 
-import BookmarkIcon from 'material-ui/lib/svg-icons/action/bookmark';
-
-// import { Link } from 'react-router';
+// import FontIcon from 'material-ui/lib/font-icon';
+// import IconButton from 'material-ui/lib/icon-button';
+// import Colors from 'material-ui/lib/styles/colors';
+// import BookmarkIcon from 'material-ui/lib/svg-icons/action/bookmark';
 
 class LandingPage extends React.Component {
   
@@ -143,6 +141,7 @@ class LandingPage extends React.Component {
       <div className="section group">
         <div className="col span_6_of_12">
           <div className="box">
+            <Link to='/test'>Test page</Link>
           </div>
         </div>
         <div className="col span_6_of_12">
