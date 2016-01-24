@@ -1,6 +1,7 @@
 import { MongoClient } from 'mongodb';
 
 import config from '../config';
+import definitions from '../../models/definitions';
 
 // Only promisers (fn that returns a promise)
 
@@ -24,18 +25,34 @@ export function disconnect(db) {
 }
 
 // Will create the collection unless already existant
-export function createTables(db) {
+export function createCollections(db) {
   
-  // to be modified
-  const tables = ['users'];
-  
-  // Will resolve 'db'
-  return new Promise((resolve, reject) => {
+  let promises = [];
+  for (let model in definitions) {
+    const { pluralName, additionalIndexs } = definitions[model];
     
-    Promise.all(tables.map(table => new Promise((resolve, reject) => {
-      console.log('Creating table', table);
-      db.createCollection(table, (err, collection) => err ? reject(err) : resolve());
-    })))
-    .then(() => resolve(db), reject);
-  });
+    promises.push(new Promise((resolve, reject) => {
+      console.log('Creating collection', pluralName);
+      
+      const params = { autoIndexId: false }; // till someone tells me why i should keep '_id'
+      db.createCollection(pluralName, params, (err, col) => {
+        if (err) return reject(err);
+        
+        // Custom indexs
+        let indexs = {};
+        if (Array.isArray(additionalIndexs)) additionalIndexs.forEach(index => indexs[index] = 1);
+        col.createIndex(indexs);
+        
+        resolve();
+      });
+    }));
+  }
+  
+  return Promise.all(promises).then(() => db);
+}
+
+export function dropDatabase(db) {
+  console.log('Dropping db');
+  
+  return db.dropDatabase().then(() => db);
 }

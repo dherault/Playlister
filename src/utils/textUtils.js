@@ -1,3 +1,3 @@
-export function capitaliseFirstChar(s) {
+export function capitalizeFirstChar(s) {
   return s.charAt(0).toUpperCase() + s.slice(1); 
 }

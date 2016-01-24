@@ -5,6 +5,7 @@ let builders = [];
 
 // Passes de mongoclient object to the query builders
 export function initMiddleware(dbConnection) {
+  // console.log('initializing db middleware');
   builders = getBuilders(dbConnection);
 }
 

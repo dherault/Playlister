@@ -28,6 +28,7 @@
     "bcrypt": "^0.8.5",
     "chalk": "^1.1.1",
     "hapi": "^12.1.0",
+    "lodash.isequal": "^4.0.0",
     "material-ui": "^0.14.2",
     "mongodb": "^2.1.4",
     "react": "^0.14.6",

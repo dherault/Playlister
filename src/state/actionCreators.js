@@ -1,6 +1,7 @@
 import log from '../utils/logger';
 import isServer from '../utils/isServer';
-import { capitaliseFirstChar } from '../utils/textUtils';
+import definitions from '../models/definitions';
+import { capitalizeFirstChar } from '../utils/textUtils';
 
 const logout = () => ({ type: 'LOGOUT' });
 
@@ -18,9 +19,7 @@ const readAll = createActionCreator({
   auth: false, // !
 });
 
-const defaultCRUSActionCreators = createDefaultCRUDActions(['user']);
-
-export default Object.assign({}, defaultCRUSActionCreators, {
+export default Object.assign({}, createDefaultCRUDActions(), {
   login, logout, readAll, 
 });
 
@@ -107,17 +106,16 @@ function appendQuery(path, params) {
   return p;
 }
 
-function createDefaultCRUDActions(models) {
+function createDefaultCRUDActions() {
   const ac = {};
   
-  models.forEach(model => {
-    
-    const name = capitaliseFirstChar(model);
-    const path = '/api/' + name;
-    const _create = 'create' + name;
-    const _read   = 'read'   + name;
-    const _update = 'update' + name;
-    const _delete = 'delete' + name;
+  for (let model in definitions) {
+    const x = capitalizeFirstChar(model);
+    const path = '/api/' + x;
+    const _create = 'create' + x;
+    const _read   = 'read'   + x;
+    const _update = 'update' + x;
+    const _delete = 'delete' + x;
     
     ac[_create] = createActionCreator({
       path,
@@ -139,8 +137,7 @@ function createDefaultCRUDActions(models) {
       method: 'delete',
       intention: _delete,
     });
-    
-  });
+  }
   
   return ac;
 } 

@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import config from './config';
 import log, { logError } from '../utils/logger';
 import actionCreators from '../state/actionCreators';
-import { connect, createTables } from './database/databaseUtils';
+import { connect, createCollections, dropDatabase } from './database/databaseUtils';
 import queryDatabase, { initMiddleware } from './database/databaseMiddleware';
 
 const server = new Hapi.Server();
@@ -12,7 +12,8 @@ server.connection({ port: config.APIPort });
 
 // Connects to the mongo database
 connect()
-.then(createTables)
+.then(dropDatabase)
+.then(createCollections)
 .then(db => {
   
   // Passes the mongoclient object to db middleware
@@ -114,11 +115,12 @@ connect()
     const before = beforeQuery[intention] || nothing;
     
     if (/^create/.test(intention)) return (params, request) => before(params, request).then(modifiedParams => {
+      // log('!!!', request.info)
       const t = new Date().getTime();
       return Object.assign(modifiedParams, {
         createdAt: t,
         updatedAt: t,
-        creationIp: request.ip,
+        creationIp: request.info.remoteAddress,
       });
     });
     

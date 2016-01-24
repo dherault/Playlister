@@ -21,7 +21,9 @@ const WDSConfig = {
   },
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoErrorsPlugin()
+    new webpack.NoErrorsPlugin(),
+    new webpack.IgnorePlugin(/databaseMiddleware/), // beware
+    // new webpack.ContextReplacementPlugin(/chalk/, null)
   ],
   devtool: 'eval',
   module: {

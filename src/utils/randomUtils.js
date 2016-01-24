@@ -1,3 +1,5 @@
+import { isNumeric } from './numberUtils';
+
 export function randomInteger(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -59,4 +61,10 @@ export function randomText(n) {
 
 export function randomHexColor() {
   return '#' + Math.floor(Math.random() * 16777215).toString(16);
+}
+
+export function randomEmail(s) {
+  const x = isNumeric(s) && s < 11 ? Math.abs(Math.floor(s)) : 6;
+  
+  return `${randomString(randomInteger(1, x))}@${randomString(randomInteger(1, x))}.${randomString(randomInteger(2, 4))}`;
 }
