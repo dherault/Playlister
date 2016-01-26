@@ -4,65 +4,46 @@ import log from '../../utils/logger';
 import { capitalizeFirstChar } from '../../utils/textUtils';
 import definitions from '../../models/definitions';
 
-function addDefaultCRUDBuilders(db, builders) {
-  const CRUDbuilders = {};
+/* Builders return a Promise that resolves data, they dont handle errors */
+
+let builders = {
   
-  for (let model in definitions) {
-    const { name, pluralName } = definitions[model];
-    const suffix = capitalizeFirstChar(name);
-    const collection = db.collection(pluralName);
+  // Reads all documents for a given collection
+  readAll: (db, params) => db.collection(params.collection).find().toArray().then(normalize),
+  
+};
+
+// Defaults can be overwritten
+export default Object.assign({}, createDefaultCRUDBuilders(), builders);
+
+// Default CRUD operations for models
+function createDefaultCRUDBuilders() {
+  
+    const CRUDbuilders = {};
     
-    CRUDbuilders['create' + suffix] = params => new Promise((resolve, reject) => {
-      collection.insertOne(params, (err, r) => {
-        if (err) return reject(err);
-        if (r.insertedCount !== 1) return reject(new Error('insertedCount !== 1'));
-        resolve(params);
-      });
-    });
-    CRUDbuilders['read' + suffix] = ({ id }) => new Promise((resolve, reject) => {
-      collection.findOne({ _id: ObjectID(id) }, (err, r) => {
-        if (err) return reject(err);
-        // if (r.deletedCount !== 1) return reject(new Error('deletedCount !== 1'));
-        resolve(r); // to be tested
-      });
-    });
-    CRUDbuilders['update' + suffix] = ({ id }) => new Promise((resolve, reject) => {
-      resolve({});
-    });
-    CRUDbuilders['delete' + suffix] = ({ id }) => new Promise((resolve, reject) => {
-      collection.deleteOne({ _id: id }, (err, r) => {
-        if (err) return reject(err);
-        if (r.deletedCount !== 1) return reject(new Error('deletedCount !== 1'));
-        resolve(true); // to be tested
-      });
-    });
-  }
-  
-  // Defaults can be overwritten
-  return Object.assign(CRUDbuilders, builders);
+    for (let model in definitions) {
+      const { name, pluralName } = definitions[model];
+      const suffix = capitalizeFirstChar(name);
+      const c = db => db.collection(pluralName);
+      
+      CRUDbuilders['read' + suffix] = (db, { id }) => c(db).findOne({ _id: ObjectID(id) });
+      CRUDbuilders['create' + suffix] = (db, params) => c(db).insertOne(params).then(() => params); // then not here
+      CRUDbuilders['update' + suffix] = (db, params) => {
+        let updatedData = Object.assign({}, params);
+        delete updatedData.id;
+        
+        return c(db).updateOne({ _id: ObjectID(params.id)}, { $set: updatedData });
+      };
+      CRUDbuilders['delete' + suffix] = (db, { id }) => c(db).deleteOne({ _id: ObjectID(id) });
+    }
+    
+    // Can be overwritten
+    return CRUDbuilders;
 }
 
-/* Builders return a Promise that resolves the data */
-export default db => addDefaultCRUDBuilders(db, {
+function normalize(array) {
+  const normalized = {};
+  array.forEach(doc => normalized[doc._id] = doc);
   
-  // Reads all items for a given collection
-  readAll: params => new Promise((resolve, reject) => {
-    db.collection(params.collection)
-    // .find({}, { 
-    //   createdAt: 0,
-    //   updatedAt: 0,
-    //   creationIp: 0,
-    // })
-    .find()
-    .toArray((err, items) => {
-      if (err) return reject(err);
-      
-      // Result normalization
-      const normalized = {};
-      items.forEach(item => normalized[item._id] = item);
-      resolve(normalized);
-    });
-  }),
-  
-  
-});
+  return normalized;
+}

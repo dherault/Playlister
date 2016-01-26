@@ -12,7 +12,7 @@ server.connection({ port: config.APIPort });
 
 // Connects to the mongo database
 connect()
-.then(dropDatabase)
+// .then(dropDatabase)
 .then(createCollections)
 .then(db => {
   
@@ -37,7 +37,6 @@ connect()
     ),
   };
   
-  // ...
   const afterQuery = {
     
     // createUser: (result, params, request) => new Promise((resolve, reject) => {
@@ -55,7 +54,7 @@ connect()
   // Dynamic construction of the API routes from actionCreator with API calls
   for (let acKey in actionCreators) {
     
-    const getShape = actionCreators[acKey].getShape || undefined;
+    const getShape = actionCreators[acKey].getShape;
     const { intention, method, path } = getShape ? getShape() : {};
     
     if (method && path) {
@@ -89,12 +88,24 @@ connect()
           
           function handleError(origin, reason) {
             
-            const code = reason.code || 500;
-            const msg = reason.msg || '';
+            // log('!!!', reason.err);
             const err = reason.err;
+            let msg = reason.msg || '';
+            let code = reason.code || 500;
             
             log('!!! Error while API', origin);
             logError(msg, err);
+            
+            // Mongo exceptions, maybe not at the best place
+            if (err && err.name === 'MongoError') {
+              switch (err.code) {
+                case 11000: // duplicate key error when creating
+                  code = 409; // Conflict
+                  msg = 'email already exists'; // just email for now
+                  break;
+                // default:
+              }
+            }
             log('Replying', code);
             
             response.statusCode = code;
@@ -110,6 +121,7 @@ connect()
     return { code, msg, err };
   }
   
+  // This is bad
   function addCommonFlags(intention) {
     
     const before = beforeQuery[intention] || nothing;

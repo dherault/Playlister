@@ -15,6 +15,7 @@ export default function createApp(initialState) {
   log('... Initializing UI and store');
   
   const history = isServer ? createMemoryHistory() : browserHistory;
+  
   const routerMiddleware = syncHistory(history);
   
   const middlewares = isServer ? 

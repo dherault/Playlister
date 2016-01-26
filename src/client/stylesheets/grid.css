@@ -10,6 +10,8 @@
 	display: block;
 	float:left;
 	margin: 1% 0 1% 1.6%;
+	overflow: hidden;
+	word-wrap: break-word;
 }
 .col:first-child { margin-left: 0; }
 

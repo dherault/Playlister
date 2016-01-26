@@ -23,7 +23,7 @@ const WDSConfig = {
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
     new webpack.IgnorePlugin(/databaseMiddleware/), // beware
-    // new webpack.ContextReplacementPlugin(/chalk/, null)
+    // new webpack.ContextReplacementPlugin(/databaseMiddleware/, null)
   ],
   devtool: 'eval',
   module: {

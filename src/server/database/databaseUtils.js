@@ -29,7 +29,7 @@ export function createCollections(db) {
   
   let promises = [];
   for (let model in definitions) {
-    const { pluralName, additionalIndexs } = definitions[model];
+    const { pluralName, uniqueIndexs } = definitions[model];
     
     promises.push(new Promise((resolve, reject) => {
       console.log('Creating collection', pluralName);
@@ -39,9 +39,8 @@ export function createCollections(db) {
         if (err) return reject(err);
         
         // Custom indexs
-        let indexs = {};
-        if (Array.isArray(additionalIndexs)) additionalIndexs.forEach(index => indexs[index] = 1);
-        col.createIndex(indexs);
+        // Assumes uniqueIndexs is array. if (Array.isArray(uniqueIndexs)) 
+        if (uniqueIndexs) uniqueIndexs.forEach(i => col.ensureIndex({ [i]: 1 }, { unique: true }));
         
         resolve();
       });

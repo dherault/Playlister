@@ -1,29 +1,29 @@
-import getBuilders from './queryBuilders';
+import builders from './queryBuilders';
 import log from '../../utils/logger';
 
-let builders = [];
+let db;
 
 // Passes de mongoclient object to the query builders
+// This is horrible
 export function initMiddleware(dbConnection) {
   // console.log('initializing db middleware');
-  builders = getBuilders(dbConnection);
+  db = dbConnection;
 }
 
 // Resolves data based on intention and params
 export default function queryDatabase(intention, params) {
-  const d = new Date();
-  const buildQuery = builders[intention];
   
   // log('queryDatabase', intention, params)
+  if (!db) return Promise.reject('No database connection');
   
-  if (buildQuery) {
-    const query = buildQuery(params);
-    query.then(result => {
-      log(`+++ <-- ${intention} after ${new Date() - d}ms`);
-      log('+++', result);
-    });
-    
-    return query; // A promise resolving the data
-  }
+  const d = new Date();
+  const builder = builders[intention];
+  
+  // Calling a builder returns a query promise
+  if (typeof builder === 'function') return builder(db, params).then(result => {
+    log(`+++ <-- ${intention} after ${new Date() - d}ms`);
+    log('+++', result);
+    return result;
+  });
   else return Promise.reject(`No query builder found for your intention: ${intention}`);
 }

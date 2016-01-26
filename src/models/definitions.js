@@ -2,6 +2,10 @@ export default {
   user: {
     name: 'user',
     pluralName: 'users',
-    additionalIndexs: ['email'],
+    uniqueIndexs: ['email'],
   },
+  playlist: {
+    name: 'playlist',
+    pluralName: 'playlists',
+  }
 };
