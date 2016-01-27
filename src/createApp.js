@@ -1,14 +1,14 @@
+import React from 'react';
+import { Provider } from 'react-redux';
+import { syncHistory, routeReducer } from 'react-router-redux';
+import { createStore, combineReducers, applyMiddleware } from 'redux';
+import { Router, browserHistory, createMemoryHistory } from 'react-router';
+
 import routes from './routes';
 import log from './utils/logger';
 import isServer from './utils/isServer';
 import reducers from './state/reducers';
 import promiseMiddleware from './state/promiseMiddleware';
-
-import React from 'react';
-import { Provider } from 'react-redux';
-import { syncHistory, routeReducer } from 'redux-simple-router';
-import { createStore, combineReducers, applyMiddleware } from 'redux';
-import { Router, browserHistory, createMemoryHistory } from 'react-router';
 
 export default function createApp(initialState) {
   

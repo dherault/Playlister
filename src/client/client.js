@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 
 import createApp from '../createApp';
-import registerShortcuts from './registerShortcuts';
+import registerSideEffects from './sideEffects';
+import registerShortcuts from './shortcuts';
 
 console.log('hi!');
 
@@ -21,6 +22,7 @@ ReactDOM.render(
   () => console.log('App rendered.')
 );
 
-registerShortcuts(store.getState);
+registerSideEffects(store);
+registerShortcuts(store);
 
 require('./stylesheets/app.css');

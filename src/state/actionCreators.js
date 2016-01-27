@@ -3,18 +3,20 @@ import isServer from '../utils/isServer';
 import definitions from '../models/definitions';
 import { capitalizeFirstChar } from '../utils/textUtils';
 
+const cac = createActionCreator;
+
 // An action creator outputs a standard action from a plain object or undefined input
 const actionCreators = {
   logout: () => ({ type: 'LOGOUT' }),
   
-  login: createActionCreator({
+  login: cac({
     intention:  'login',
     method:     'post',
-    path:      '/login',
+    path:      '/api/login',
     auth:       false,
   }),
   
-  readAll: createActionCreator({
+  readAll: cac({
     intention: 'readAll',
     method: 'get',
     path: '/api/readAll',
@@ -40,11 +42,11 @@ function createActionCreator(shape) {
     
     log('.A.', intention, params ? JSON.stringify(params) : '');
     
-    return { 
+    const action = { 
       types, 
       params, 
       promise: isServer ? 
-      
+        
         // Server rendering : direct db middleware call  // Or call API ?
         require('../server/database/databaseMiddleware')(intention, params) :
         
@@ -74,7 +76,7 @@ function createActionCreator(shape) {
             response: 'An error occured, check your internet connection: ' + err.message, 
           });
           
-          // queries are launched when the action gets created, not dispatched
+          // Queries are launched when an action gets created, not dispatched
           xhr.open(method, pathWithQuery);
           
           xhr.onload = () => {
@@ -95,16 +97,18 @@ function createActionCreator(shape) {
           }
           else xhr.send();
         })
-        
-        .then(result => {
-          log(`+++ <-- ${intention}`, result);
-          return result;
-        }, ({ status, response }) => {
-          log('!!! API Action error', intention, params);
-          log('!!! response', status, response);
-        })
     };
     
+    // New promise chain because promiseMiddleware is the end catcher
+    action.promise.then(result => {
+      log(`+++ <-- ${intention}`, result);
+      return result;
+    }, ({ status, response }) => {
+      log('!!! action.promise error', intention, params);
+      log('!!! response', status, response);
+    }); 
+    
+    return action;
   };
   
   // getters

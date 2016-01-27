@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router';
+import { connect } from 'react-redux';
 import Paper from 'material-ui/lib/paper';
 import TextField from 'material-ui/lib/text-field';
 import RaisedButton from 'material-ui/lib/raised-button';
@@ -10,6 +11,8 @@ import CircularProgress from 'material-ui/lib/circular-progress';
 // import Colors from 'material-ui/lib/styles/colors';
 // import BookmarkIcon from 'material-ui/lib/svg-icons/action/bookmark';
 
+import ac from '../state/actionCreators';
+
 class LandingPage extends React.Component {
   
   constructor() {
@@ -19,6 +22,10 @@ class LandingPage extends React.Component {
       email: '',
       password: '',
     };
+  }
+  
+  componentWillReceiveProps(nextprops) {
+    if (nextprops.lastAction.type === 'FAILURE_LOGIN' && this.state.step !== 'password') this.setState({ step: 'password' });
   }
   
   handleMailClick() {
@@ -48,6 +55,8 @@ class LandingPage extends React.Component {
     
     else if (this.state.step === 'password' && this.state.password.length >= 8) {
       this.setState({ step: 'submit' });
+      const { email, password } = this.state;
+      this.props.dispatch(ac.login({ email, password }));
     }
   }
   
@@ -141,7 +150,8 @@ class LandingPage extends React.Component {
       <div className="section group">
         <div className="col span_6_of_12">
           <div className="box">
-            <Link to='/test'>Test page</Link>
+            <Link to='/test'>Test page</Link>&nbsp;
+            <Link to='/@joe'>Joe page</Link>
           </div>
         </div>
         <div className="col span_6_of_12">
@@ -217,5 +227,4 @@ class LandingPage extends React.Component {
   }
 }
 
-// export default connect(s => ({ records: s.records }))(App);
-export default LandingPage;
+export default connect(s => ({ lastAction: s.lastAction }))(LandingPage);

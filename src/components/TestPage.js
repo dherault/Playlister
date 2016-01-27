@@ -24,6 +24,7 @@ class TestPage extends React.Component {
       deleteOneId: '',
       createUserEmail: randomEmail(),
       createUserPassword: '12345678',
+      createImageSize: 64,
     };
   }
   
@@ -88,6 +89,24 @@ class TestPage extends React.Component {
   
   handleCreateUserRandom() {
     this.setState({ createUserEmail: randomEmail() });
+  }
+  
+  handleCreateXClick(email) {
+    this.props.dispatch(ac.createUser({ email, username: email, password: 'password'}));
+  }
+  
+  // CREATE IMAGE
+  handleCreateImageInput(e) {
+    this.setState({ createImageSize: e.target.value });
+  }
+  
+  handleCreateImageClick() {
+    console.log('Calling image server');
+    const xhr = new XMLHttpRequest();
+    xhr.onerror = err => console.error(err);
+    xhr.open('get', '/img/random/' + this.state.createImageSize);
+    xhr.onload = () => console.log(xhr.status, xhr.response);
+    xhr.send();
   }
   
   
@@ -157,10 +176,22 @@ class TestPage extends React.Component {
         
         <section>
           <h2>createUser</h2>
-          <input type="text" value={state.createUserEmail} onChange={this.handleCreateUserEmailInput.bind(this)} />
-          <input type="text" value={state.createUserPassword} onChange={this.handleCreateUserPasswordInput.bind(this)} />
-          <button onClick={this.handleCreateUserClick.bind(this)}>createUser</button>
-          <button onClick={this.handleCreateUserRandom.bind(this)}>ʘ</button>
+          <div>
+            <input type="text" value={state.createUserEmail} onChange={this.handleCreateUserEmailInput.bind(this)} />
+            <input type="text" value={state.createUserPassword} onChange={this.handleCreateUserPasswordInput.bind(this)} />
+            <button onClick={this.handleCreateUserClick.bind(this)}>createUser</button>
+            <button onClick={this.handleCreateUserRandom.bind(this)}>ʘ</button>
+          </div>
+          <div>
+            <button onClick={this.handleCreateXClick.bind(this, 'admin')}>createAdmin</button>
+            <button onClick={this.handleCreateXClick.bind(this, 'joe@joe.joe')}>createJoe</button>
+          </div>
+        </section>
+        
+        <section>
+          <h2>createImage</h2>
+          <input type="integer" value={state.createImageSize} onChange={this.handleCreateImageInput.bind(this)} />
+          <button onClick={this.handleCreateImageClick.bind(this)}>createImage</button>
         </section>
         
       </div>

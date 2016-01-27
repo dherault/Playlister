@@ -5,9 +5,10 @@
   "main": "src/server/static_server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "clear && npm run static & npm run api",
-    "static": "babel-node src/server/static_server.js",
-    "api": "nodemon -q -x \"babel-node\" --watch ./src -e js ./src/server/API_server.js",
+    "start": "clear && npm run static_server & npm run api_server & npm run image_server",
+    "static_server": "babel-node src/server/static_server.js",
+    "api_server": "nodemon -q -x \"babel-node\" --watch ./src -e js ./src/server/API_server.js",
+    "image_server": "nodemon -q -x \"babel-node\" --watch ./src/server/image_server -i ./src/server/image_server/images -e js ./src/server/image_server/image_server.js",
     "postinstall": "sudo npm i -g nodemon babel-cli"
   },
   "author": "David Hérault",
@@ -27,7 +28,9 @@
   "dependencies": {
     "bcrypt": "^0.8.5",
     "chalk": "^1.1.1",
+    "gm": "^1.21.1",
     "hapi": "^12.1.0",
+    "inert": "^3.2.0",
     "lodash.isequal": "^4.0.0",
     "material-ui": "^0.14.2",
     "mongodb": "^2.1.4",
@@ -35,8 +38,9 @@
     "react-dom": "^0.14.6",
     "react-redux": "^4.0.6",
     "react-router": "2.0.0-rc5",
+    "react-router-redux": "^2.1.0",
     "react-tap-event-plugin": "^0.2.1",
     "redux": "^3.0.5",
-    "redux-simple-router": "^2.0.4"
+    "uuid": "^2.0.1"
   }
 }

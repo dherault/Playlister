@@ -71,6 +71,10 @@ new WDS(bundle, {
       target: 'http://localhost:' + config.APIPort,
       // secure: false,
     },
+    '/img/*': {
+      target: 'http://localhost:' + config.imageServerPort,
+      // secure: false,
+    },
   },
 })
 

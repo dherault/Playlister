@@ -4,13 +4,16 @@ import log from '../../utils/logger';
 import { capitalizeFirstChar } from '../../utils/textUtils';
 import definitions from '../../models/definitions';
 
-/* Builders return a Promise that resolves data, they dont handle errors */
+// Field filtering on/off
+const noDisclosure = 0 ? {} : { fields: { createdAt: 0, updatedAt: 0, creationIp: 0 } };
 
+/* Builders return a Promise that resolves data, they dont handle errors */
 let builders = {
   
   // Reads all documents for a given collection
-  readAll: (db, params) => db.collection(params.collection).find().toArray().then(normalize),
+  readAll: (db, params) => db.collection(params.collection).find({}, noDisclosure).toArray().then(normalize),
   
+  login: (db, { email }) => db.collection('users').findOne({ email }, noDisclosure)
 };
 
 // Defaults can be overwritten
@@ -26,7 +29,7 @@ function createDefaultCRUDBuilders() {
       const suffix = capitalizeFirstChar(name);
       const c = db => db.collection(pluralName);
       
-      CRUDbuilders['read' + suffix] = (db, { id }) => c(db).findOne({ _id: ObjectID(id) });
+      CRUDbuilders['read' + suffix] = (db, { id }) => c(db).findOne({ _id: ObjectID(id) }, noDisclosure);
       CRUDbuilders['create' + suffix] = (db, params) => c(db).insertOne(params).then(() => params); // then not here
       CRUDbuilders['update' + suffix] = (db, params) => {
         let updatedData = Object.assign({}, params);
@@ -37,13 +40,12 @@ function createDefaultCRUDBuilders() {
       CRUDbuilders['delete' + suffix] = (db, { id }) => c(db).deleteOne({ _id: ObjectID(id) });
     }
     
-    // Can be overwritten
     return CRUDbuilders;
 }
 
 function normalize(array) {
-  const normalized = {};
-  array.forEach(doc => normalized[doc._id] = doc);
+  const x = {};
+  array.forEach(doc => x[doc._id] = doc);
   
-  return normalized;
+  return x;
 }

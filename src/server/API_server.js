@@ -37,29 +37,34 @@ connect()
     ),
   };
   
+  // Same but after the query
   const afterQuery = {
     
-    // createUser: (result, params, request) => new Promise((resolve, reject) => {
-    //   if (!result || !result.id) return reject(createReason(500, 'createUser no userId'));
-      
-    //   resolve({
-    //     userId: result.id,
-    //     expiration: new Date().getTime() + ttl,
-    //   });
-    // }),
+    login: (result, { email, password }, request) => new Promise((resolve, reject) => {
+      if (result) bcrypt.compare(password, result.passwordHash, (err, isValid) => {
+        if (err) return reject(createReason(500, 'login bcrypt.compare', err));
+        
+        if (isValid) {
+          delete result.passwordHash; // We know how to keep secrets
+          resolve(result);
+        }
+        else reject(createReason(401, 'Invalid password'));
+      });
+      else reject(createReason(401, 'User not found'));
+    }),
   };
   
-  const nothing = x => Promise.resolve(x);
+  const resolve = x => Promise.resolve(x); // names are fun too
   
-  // Dynamic construction of the API routes from actionCreator with API calls
+  // Dynamic construction of API routes based on actionCreators with API call
   for (let acKey in actionCreators) {
     
     const getShape = actionCreators[acKey].getShape;
     const { intention, method, path } = getShape ? getShape() : {};
     
     if (method && path) {
-      const before = addCommonFlags(intention) || nothing;
-      const after  = afterQuery[intention]  || nothing;
+      const before = addCommonFlags(intention) || resolve;
+      const after  = afterQuery[intention]  || resolve;
       
       server.route({
         method, 
@@ -124,7 +129,7 @@ connect()
   // This is bad
   function addCommonFlags(intention) {
     
-    const before = beforeQuery[intention] || nothing;
+    const before = beforeQuery[intention] || resolve;
     
     if (/^create/.test(intention)) return (params, request) => before(params, request).then(modifiedParams => {
       // log('!!!', request.info)
