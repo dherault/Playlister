@@ -1,5 +1,6 @@
 import Hapi from 'hapi';
 import bcrypt from 'bcrypt';
+import io from 'socket.io-client';
 
 import config from '../config';
 import xhr from '../../utils/xhr';
@@ -13,13 +14,25 @@ const port = config.services.api.port;
 server.connection({ port });
 
 // Connects to the mongo database
-connect(config.services.api.mongoURL)
+connect(config.mongo.url)
 // .then(dropDatabase)
 .then(createCollections)
 .then(db => {
   
   // Passes the mongoclient object to db middleware
   initMiddleware(db);
+  
+  // Creates websocket service connection to notice user
+  const { serviceSecretNamespace, servicesSecretKey } = config.services.websocket;
+  const socket = io('http://localhost:8282/'+ serviceSecretNamespace);
+  socket.on('connect', () => {
+    // log('_w_', 'API connected');
+    socket.emit('auth', { key: servicesSecretKey, name: 'API dev server' });
+  });
+  
+  socket.on('message', data => {
+    // log('_w_', 'API message:', data);
+  });
   
   // Allows validation and params mutation before querying db
   const beforeQuery = {
@@ -42,20 +55,24 @@ connect(config.services.api.mongoURL)
   // Same but after the query
   const afterQuery = {
     
-    createUser: (result, params, request) => new Promise((resolve, reject) => {
-      resolve(result);
+    createUser: (result, params, request) => {
+      const r = Object.assign({}, result);
+      ['passwordHash', 'createdAt', 'updatedAt', 'creationIp'].map(x => delete r[x]);
       
       // Parallel profile picture processing
       xhr('get', 'http://localhost:8383/img/random/128').then(response => {
-        queryDatabase('updateUser', { 
+        const data = { 
           id: result._id,
           imageUrl: response.url, 
           originalImageUrl: response.originalUrl,
-        }).then(result => {
-          
-        }, err => console.error(err));
+        };
+        
+        queryDatabase('updateUser', data).then(result => socket.emit('noticeUpdateUser', data), 
+          err => console.error(err));
       }, err => console.error(err));
-    }),
+      
+      return Promise.resolve(r);
+    },
     
     login: (result, { email, password }, request) => new Promise((resolve, reject) => {
       if (result) bcrypt.compare(password, result.passwordHash, (err, isValid) => {

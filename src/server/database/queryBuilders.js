@@ -5,10 +5,13 @@ import { capitalizeFirstChar } from '../../utils/textUtils';
 import definitions from '../../models/definitions';
 
 // Field filtering on/off
-const noDisclosure = 0 ? {} : { fields: { createdAt: 0, updatedAt: 0, creationIp: 0 } };
+const noDisclosure = 0 ? {} : { fields: { createdAt: 0, updatedAt: 0, creationIp: 0, passwordHash: 0 } };
 
 /* Builders return a Promise that resolves data, they dont handle errors */
 let builders = {
+  
+  // Drops collections
+  drop: db => db.dropDatabase(),
   
   // Reads all documents for a given collection
   readAll: (db, params) => db.collection(params.collection).find({}, noDisclosure).toArray().then(normalize),

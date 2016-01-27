@@ -6,13 +6,23 @@ import ac from '../state/actionCreators';
 
 export default store => {
   
-  const socket = io('http://localhost:8282');
-  const { dispatch, getState } = store;
+  const socket = io('http://localhost:8282/users');
+  const { dispatch, getState, suscribe } = store;
+  
+  // suscribe(() => {
+  //   const { lastAction } = getState();
+    
+  //   switch(lastAction.type) {
+  //     case 'SUCCESS_LOGIN':
+  //       socket.emit('')
+  //       break;
+  //   }
+  // });
   
   const handlers = {
     message: data => {},
     
-    updateUserPicture: data => dispatch(ac.updateUserPicture(data)),
+    updateUser: data => dispatch(ac.updateUserPicture(data)),
   };
   
   for (let key in handlers) {

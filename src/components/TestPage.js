@@ -35,6 +35,9 @@ class TestPage extends React.Component {
     this.setState({ recordsOffset: this.props.records.length });
   }
   
+  handleDrop() {
+    this.props.dispatch(ac.drop());
+  }
   handleModelSelection(e) {
     this.setState({ model: e.target.value });
   }
@@ -86,7 +89,8 @@ class TestPage extends React.Component {
   handleCreateUserClick() {
     this.props.dispatch(ac.createUser({ 
       email: this.state.createUserEmail,
-      password: this.state.createUserPassword
+      password: this.state.createUserPassword,
+      username: this.state.createUserEmail,
     }));
   }
   
@@ -205,6 +209,7 @@ class TestPage extends React.Component {
           <div>
             <input type="integer" value={state.createImageSize} onChange={this.handleCreateImageInput.bind(this)} />
             <button onClick={this.handleCreateImageClick.bind(this)}>createImage</button>
+            
           </div>
             <img src={state.createImageUrl} />
             <span>{ state.createImageOriginalName }</span>
@@ -220,6 +225,7 @@ class TestPage extends React.Component {
       
         <h2 style={{display: 'inline-block'}}>Records</h2>&nbsp;&nbsp;
         <button onClick={this.handleClear.bind(this)}>Clear</button>
+        <button onClick={this.handleDrop.bind(this)} style={{float:'right'}}>Drop database</button>
         <ol start={state.recordsOffset}>
         { 
           props.records.map((record, i) => {

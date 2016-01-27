@@ -7,6 +7,14 @@ const cac = createActionCreator;
 
 // An action creator outputs a standard action from a plain object or undefined input
 const actionCreators = {
+  
+  drop: cac({
+    intention:  'drop',
+    method:     'delete',
+    path:      '/api/drop',
+    auth:       false,
+  }),
+  
   logout: () => ({ type: 'LOGOUT' }),
   
   login: cac({

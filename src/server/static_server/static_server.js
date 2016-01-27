@@ -76,7 +76,11 @@ new WDS(bundle, {
       // secure: false,
     },
     '/img/*': {
-      target: 'http://localhost:' + config.services.api.port,
+      target: 'http://localhost:' + config.services.image.port,
+      // secure: false,
+    },
+    '/kvs/*': {
+      target: 'http://localhost:' + config.services.kvs.port,
       // secure: false,
     },
   },

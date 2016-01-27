@@ -5,13 +5,14 @@
   "main": "src/server/static_server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "clear && npm run static_server & npm run api_server & npm run websocket_server & npm run image_server",
+    "start": "clear && npm run static_server & npm run api_server & npm run websocket_server & npm run image_server & npm run kvs_server",
     "static_server": "babel-node src/server/static_server/static_server.js",
     "api_server": "nodemon -q -x \"babel-node\" --watch ./src -i ./src/client/ -i ./src/server/static_server/ -i ./src/server/websocket_server/ -i ./src/server/image_server/ -e js ./src/server/API_server/API_server.js",
     "websocket_server": "nodemon -q -x \"babel-node\" --watch ./src/server/websocket_server/ -e js ./src/server/websocket_server/websocket_server.js",
     "image_server": "nodemon -q -x \"babel-node\" --watch ./src/server/image_server/ -i ./src/server/image_server/images/ -e js ./src/server/image_server/image_server.js",
     "clean_generated_images": "rm src/server/image_server/images/generated/*",
     "cgi": "npm run clean_generated_images",
+    "kvs_server": "nodemon -q -x \"babel-node\" --watch ./src/server/kvs_server/ -e js ./src/server/kvs_server/kvs_server.js",
     "postinstall": "sudo npm i -g nodemon babel-cli"
   },
   "author": "David Hérault",
@@ -30,9 +31,12 @@
   },
   "dependencies": {
     "bcrypt": "^0.8.5",
+    "catbox": "^7.1.0",
+    "catbox-mongodb": "^2.0.0",
     "chalk": "^1.1.1",
     "gm": "^1.21.1",
     "hapi": "^12.1.0",
+    "hapi-auth-jwt2": "^5.3.2",
     "inert": "^3.2.0",
     "lodash.isequal": "^4.0.0",
     "material-ui": "^0.14.2",
