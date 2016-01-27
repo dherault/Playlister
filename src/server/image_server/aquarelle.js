@@ -152,7 +152,10 @@ export default class Aquarelle {
             }
             
             // Quality condition, v2
-            if (minOfSD > minSD && brightness > minBrightness && brightness < maxBrightness) resolve(thumbnail); 
+            if (minOfSD > minSD && brightness > minBrightness && brightness < maxBrightness) {
+              const pathArray = filePath.split('/');
+              resolve({ thumbnail, originalName: pathArray[pathArray.length - 1] });
+            }
             else this._generateOnePicture(options, cycleCount + 1).then(resolve, reject);
           });
         });
@@ -166,10 +169,10 @@ export default class Aquarelle {
     return new Promise((resolve, reject) => {
       
       this._generateAGoodPicture(options).then(
-        thumbnail => thumbnail.write(newFilePath, err => {
+        ({ thumbnail, originalName }) => thumbnail.write(newFilePath, err => {
           if (err) return reject(`Error while saving new file: ${err.message}`);
           
-          resolve();
+          resolve({ originalName });
         }),
         reject
       );
@@ -182,10 +185,10 @@ export default class Aquarelle {
     return new Promise((resolve, reject) => {
       
       this._generateAGoodPicture(options).then(
-        thumbnail => thumbnail.stream((err, stdout, stderr) => {
+        ({ thumbnail, originalName }) => thumbnail.stream((err, stdout, stderr) => {
           if (err) return reject(`Error while streaming new picture: ${err.message}`);
           
-          resolve({stdout, stderr});
+          resolve({stdout, stderr, originalName});
         }),
         reject
       );

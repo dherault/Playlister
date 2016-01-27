@@ -5,6 +5,7 @@ import injectTapEventPlugin from 'react-tap-event-plugin';
 import createApp from '../createApp';
 import registerSideEffects from './sideEffects';
 import registerShortcuts from './shortcuts';
+import registerWebsocket from './websocket';
 
 console.log('hi!');
 
@@ -23,6 +24,7 @@ ReactDOM.render(
 );
 
 registerSideEffects(store);
+registerWebsocket(store);
 registerShortcuts(store);
 
 require('./stylesheets/app.css');

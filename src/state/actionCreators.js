@@ -22,6 +22,11 @@ const actionCreators = {
     path: '/api/readAll',
     auth: false, // !
   }),
+  
+  updateUserPicture: params => ({
+    params,
+    type: 'UPDATE_USER_PICTURE',
+  }),
 };
 
 export default Object.assign({}, createDefaultCRUDActions(), actionCreators);

@@ -1,17 +1,19 @@
 import Hapi from 'hapi';
 import bcrypt from 'bcrypt';
 
-import config from './config';
-import log, { logError } from '../utils/logger';
-import actionCreators from '../state/actionCreators';
-import { connect, createCollections, dropDatabase } from './database/databaseUtils';
-import queryDatabase, { initMiddleware } from './database/databaseMiddleware';
+import config from '../config';
+import xhr from '../../utils/xhr';
+import log, { logError } from '../../utils/logger';
+import actionCreators from '../../state/actionCreators';
+import { connect, createCollections, dropDatabase } from '../database/databaseUtils';
+import queryDatabase, { initMiddleware } from '../database/databaseMiddleware';
 
 const server = new Hapi.Server();
-server.connection({ port: config.APIPort });
+const port = config.services.api.port;
+server.connection({ port });
 
 // Connects to the mongo database
-connect()
+connect(config.services.api.mongoURL)
 // .then(dropDatabase)
 .then(createCollections)
 .then(db => {
@@ -39,6 +41,21 @@ connect()
   
   // Same but after the query
   const afterQuery = {
+    
+    createUser: (result, params, request) => new Promise((resolve, reject) => {
+      resolve(result);
+      
+      // Parallel profile picture processing
+      xhr('get', 'http://localhost:8383/img/random/128').then(response => {
+        queryDatabase('updateUser', { 
+          id: result._id,
+          imageUrl: response.url, 
+          originalImageUrl: response.originalUrl,
+        }).then(result => {
+          
+        }, err => console.error(err));
+      }, err => console.error(err));
+    }),
     
     login: (result, { email, password }, request) => new Promise((resolve, reject) => {
       if (result) bcrypt.compare(password, result.passwordHash, (err, isValid) => {
@@ -151,7 +168,7 @@ connect()
   }
   
   server.start(() => {
-    log('API listening on port', config.APIPort);
+    log('API listening on port', port);
   });
   
 }, err => console.error(err));

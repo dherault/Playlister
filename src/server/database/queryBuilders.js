@@ -35,7 +35,7 @@ function createDefaultCRUDBuilders() {
         let updatedData = Object.assign({}, params);
         delete updatedData.id;
         
-        return c(db).updateOne({ _id: ObjectID(params.id)}, { $set: updatedData });
+        return c(db).updateOne({ _id: ObjectID(params.id)}, { $set: updatedData }).then(r => r.result);
       };
       CRUDbuilders['delete' + suffix] = (db, { id }) => c(db).deleteOne({ _id: ObjectID(id) });
     }

@@ -24,7 +24,10 @@ class TestPage extends React.Component {
       deleteOneId: '',
       createUserEmail: randomEmail(),
       createUserPassword: '12345678',
-      createImageSize: 64,
+      createImageSize: 128,
+      createImageUrl: '',
+      createImageOriginalUrl: '',
+      createImageOriginalName: '',
     };
   }
   
@@ -105,7 +108,16 @@ class TestPage extends React.Component {
     const xhr = new XMLHttpRequest();
     xhr.onerror = err => console.error(err);
     xhr.open('get', '/img/random/' + this.state.createImageSize);
-    xhr.onload = () => console.log(xhr.status, xhr.response);
+    xhr.onload = () => {
+      const { status, response } = xhr;
+      console.log(status, response);
+      const r = JSON.parse(response);
+      this.setState({
+        createImageUrl: r.url,
+        createImageOriginalUrl: r.originalUrl,
+        createImageOriginalName: r.originalName,
+      });
+    };
     xhr.send();
   }
   
@@ -190,8 +202,15 @@ class TestPage extends React.Component {
         
         <section>
           <h2>createImage</h2>
-          <input type="integer" value={state.createImageSize} onChange={this.handleCreateImageInput.bind(this)} />
-          <button onClick={this.handleCreateImageClick.bind(this)}>createImage</button>
+          <div>
+            <input type="integer" value={state.createImageSize} onChange={this.handleCreateImageInput.bind(this)} />
+            <button onClick={this.handleCreateImageClick.bind(this)}>createImage</button>
+          </div>
+            <img src={state.createImageUrl} />
+            <span>{ state.createImageOriginalName }</span>
+            <img src={state.createImageOriginalUrl} />
+          <div>
+          </div>
         </section>
         
       </div>

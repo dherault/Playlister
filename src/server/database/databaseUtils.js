@@ -1,27 +1,25 @@
 import { MongoClient } from 'mongodb';
 
 import config from '../config';
+import log from '../../utils/logger';
 import definitions from '../../models/definitions';
 
 // Only promisers (fn that returns a promise)
 
-export function connect() {
+export function connect(url) {
   
-  return new Promise((resolve, reject) => {
-  
-    MongoClient.connect(config.mongoURL, (err, db) => {
-      if (err) return reject(err);
-      
-      console.log("Connected correctly to mongo");
-      
-      resolve(db);
-    });
+  return new MongoClient.connect(url).then(db => {
+    log("... Connected correctly to mongo");
+    return db;
   });
 }
 
 export function disconnect(db) {
   
-  return new Promise((resolve, reject) => db.close(err => err ? reject(err) : resolve(db)));
+  return db.close().then(() => {
+    log("... Disconnected correctly from mongo");
+    return db;
+  });
 }
 
 // Will create the collection unless already existant
@@ -32,7 +30,7 @@ export function createCollections(db) {
     const { pluralName, uniqueIndexs } = definitions[model];
     
     promises.push(new Promise((resolve, reject) => {
-      console.log('Creating collection', pluralName);
+      log('... Creating collection', pluralName);
       
       const params = { autoIndexId: false }; // till someone tells me why i should keep '_id'
       db.createCollection(pluralName, params, (err, col) => {
@@ -51,7 +49,7 @@ export function createCollections(db) {
 }
 
 export function dropDatabase(db) {
-  console.log('Dropping db');
+  log('... Dropping db');
   
   return db.dropDatabase().then(() => db);
 }

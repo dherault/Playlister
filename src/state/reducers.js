@@ -5,12 +5,20 @@ import isEqual from 'lodash.isequal';
 const crud = reduceDefaultCRUDTypes;
 
 export default {
-  users: crud('user', (state={}, action) => {
+  users: crud('user', (state={}, { type, params, payload }) => {
     
+    log('.R. ' + type); // keep this line in the first reducer
     
-    log('.R. ' + action.type); // keep this line in the first reducer
-    
-    return state;
+    switch (type) {
+      case 'UPDATE_USER_PICTURE':
+        const { id } = params;
+        const newState = Object.assign({}, state);
+        delete params.id;
+        return Object.assign({}, newState, { [id]: Object.assign({}, newState[id], params) });
+      
+      default:
+        return state;
+    }
   }),
   
   // Side effects and logging reducers

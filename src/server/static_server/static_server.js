@@ -1,21 +1,21 @@
-// import path from 'path';
 import chalk from 'chalk';
 import webpack from 'webpack';
 import WDS from 'webpack-dev-server';
-import config from './config.js';
 
-const WDSPort = config.WDSPort;
+import config from '../config.js';
+
+const port = config.services.webpack.port;
 const WDSConfig = {
   entry: [
     './src/client/client.js', 
     'webpack/hot/only-dev-server', 
-    'webpack-dev-server/client?http://localhost:' + WDSPort
+    'webpack-dev-server/client?http://localhost:' + port
   ],
   // resolve: {
   //   extensions: ['', '.js', '.jsx']
   // },
   output: {
-    path: require('path').resolve('./src/server/build'),
+    path: require('path').resolve('./src/server/static_server/public/'),
     filename: 'bundle.js',
     publicPath: '/static/',
   },
@@ -23,7 +23,7 @@ const WDSConfig = {
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
     new webpack.IgnorePlugin(/databaseMiddleware/), // beware
-    // new webpack.ContextReplacementPlugin(/databaseMiddleware/, null)
+    new webpack.ContextReplacementPlugin(/xmlhttprequest/, null)
   ],
   devtool: 'eval',
   module: {
@@ -40,6 +40,10 @@ const WDSConfig = {
       }
     ]
   },
+  node: {
+    // fs: 'empty',
+    // http: 'empty',
+  },
 };
 
 let startTime;
@@ -55,7 +59,7 @@ bundle.plugin('done', () => {
 });
 
 new WDS(bundle, {
-  contentBase: './src/server/public',
+  contentBase: './src/server/static_server/public',
   publicPath: WDSConfig.output.publicPath,
   hot: true,
   noInfo : true,
@@ -66,20 +70,20 @@ new WDS(bundle, {
   stats: {
     colors: true
   },
-  proxy: {
+  proxy: { // Could be more automated
     '/api/*': {
-      target: 'http://localhost:' + config.APIPort,
+      target: 'http://localhost:' + config.services.api.port,
       // secure: false,
     },
     '/img/*': {
-      target: 'http://localhost:' + config.imageServerPort,
+      target: 'http://localhost:' + config.services.api.port,
       // secure: false,
     },
   },
 })
 
 // 0.0.0.0 because behind VM
-.listen(WDSPort, '0.0.0.0', err => {
-  if (err) return console.error('devServer.listen', err);
-  console.log(`WDS listening on port ${WDSPort}`);
+.listen(port, '0.0.0.0', err => {
+  if (err) return console.error('WDS.listen', err);
+  console.log(`WDS listening on port ${port}`);
 });
