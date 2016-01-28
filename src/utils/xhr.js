@@ -1,6 +1,5 @@
-import XMLHttpRequestNode from 'xmlhttprequest';
-
 import isServer from './isServer';
+import log from './logger';
 
 // A promise wrapper around XMLHttpRequest 
 export default function makeHttpRequest(method, path, params) {
@@ -10,8 +9,9 @@ export default function makeHttpRequest(method, path, params) {
   
   return new Promise((resolve, reject) => {
     
-    // Universal xhr is ugly fow now
-    const xhr = isServer ? new XMLHttpRequestNode.XMLHttpRequest() : new XMLHttpRequest();
+    // Universal xhr is ugly for now
+    const Xhr = isServer ? require('xhr2') : XMLHttpRequest;
+    const xhr = new Xhr();
     const m = method.toLowerCase();
     const isPost = m === 'post' || m === 'put';
     
@@ -31,10 +31,9 @@ export default function makeHttpRequest(method, path, params) {
     xhr.onerror = err => reject(err);
     xhr.open(m, pathWithQuery);
     xhr.onload = () => {
-      const { status, response, responseText } = xhr;
-      
+      const { status, response } = xhr;
       try {
-        const parsed = JSON.parse(isServer ? responseText : response);
+        const parsed = response ? JSON.parse(response) : null;
         if (status === 200) resolve(parsed);
         else reject({ status, response: parsed });
       }

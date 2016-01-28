@@ -12,7 +12,7 @@ const actionCreators = {
     intention:  'drop',
     method:     'delete',
     path:      '/api/drop',
-    auth:       false,
+    auth:       true,
   }),
   
   logout: () => ({ type: 'LOGOUT' }),
@@ -29,11 +29,6 @@ const actionCreators = {
     method: 'get',
     path: '/api/readAll',
     auth: false, // !
-  }),
-  
-  updateUserPicture: params => ({
-    params,
-    type: 'UPDATE_USER_PICTURE',
   }),
 };
 
@@ -67,6 +62,7 @@ function createActionCreator(shape) {
         new Promise((resolve, reject) => {
           
           const xhr = new XMLHttpRequest();
+          xhr.withCredentials = true;
           const isPost = method === 'post' || method === 'put';
           
           // URI construction

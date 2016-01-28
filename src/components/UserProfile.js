@@ -22,7 +22,8 @@ class UserProfile extends React.Component {
   render() {
     
     return <div>
-      <Link to="/">Landing Page</Link>
+      <Link to="/">Landing Page</Link>&nbsp;
+      <Link to="/test">Test Page</Link>
       <div>
         { this.props.user }
       </div>

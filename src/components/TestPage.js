@@ -5,6 +5,7 @@ import { Link } from 'react-router';
 import ac from '../state/actionCreators';
 import definitions from '../models/definitions';
 import { capitalizeFirstChar } from '../utils/textUtils';
+import xhr from '../utils/xhr';
 import { randomInteger, randomString, randomEmail } from '../utils/randomUtils';
 
 const cfc = capitalizeFirstChar;
@@ -17,17 +18,17 @@ class TestPage extends React.Component {
     this.state = {
       recordsOffset: 0,
       model: 'user',
-      readOneId: '',
-      updateOneId: '',
+      id: '',
       updateOneKey: '',
       updateOneValue: '',
-      deleteOneId: '',
       createUserEmail: randomEmail(),
       createUserPassword: '12345678',
-      createImageSize: 128,
+      createImageSize: 200,
       createImageUrl: '',
       createImageOriginalUrl: '',
       createImageOriginalName: '',
+      kvsKey: '',
+      kvsValue: '',
     };
   }
   
@@ -38,8 +39,13 @@ class TestPage extends React.Component {
   handleDrop() {
     this.props.dispatch(ac.drop());
   }
+  
   handleModelSelection(e) {
     this.setState({ model: e.target.value });
+  }
+  
+  handleInput(k, e) {
+    this.setState({ [k]: e.target.value });
   }
   
   // READ ALL
@@ -48,44 +54,25 @@ class TestPage extends React.Component {
   }
   
   // READ ONE
-  handleReadOneInput(e) {
-    this.setState({ readOneId: e.target.value });
-  }
   
   handleReadOneClick() {
-    this.props.dispatch(ac['read' + cfc(this.state.model)]({ id: this.state.readOneId }));
+    this.props.dispatch(ac['read' + cfc(this.state.model)]({ id: this.state.id }));
   }
   
   // UPDATE ONE
-  handleUpdateOneInput(k, e) {
-    this.setState({ [k]: e.target.value });
-  }
-  
   handleUpdateOneClick() {
     this.props.dispatch(ac['update' + cfc(this.state.model)]({ 
-      id: this.state.updateOneId,
+      id: this.state.id,
       [this.state.updateOneKey]: this.state.updateOneValue
     }));
   }
   
   // DELETE ONE
-  handleDeleteOneInput(e) {
-    this.setState({ deleteOneId: e.target.value });
-  }
-  
   handleDeleteOneClick() {
-    this.props.dispatch(ac['delete' + cfc(this.state.model)]({ id: this.state.deleteOneId }));
+    this.props.dispatch(ac['delete' + cfc(this.state.model)]({ id: this.state.id }));
   }
   
   // CREATE USER
-  handleCreateUserEmailInput(e) {
-    this.setState({ createUserEmail: e.target.value });
-  }
-  
-  handleCreateUserPasswordInput(e) {
-    this.setState({ createUserPassword: e.target.value });
-  }
-  
   handleCreateUserClick() {
     this.props.dispatch(ac.createUser({ 
       email: this.state.createUserEmail,
@@ -102,27 +89,33 @@ class TestPage extends React.Component {
     this.props.dispatch(ac.createUser({ email, username: email, password: 'password'}));
   }
   
-  // CREATE IMAGE
-  handleCreateImageInput(e) {
-    this.setState({ createImageSize: e.target.value });
+  // KVS SERVER
+  handleCKvsClick(op) {
+    const key = this.state.kvsKey;
+    const value = this.state.kvsValue;
+    const store = 'test';
+    
+    if (op === 'get') {
+      xhr('get', '/kvs/', { key, store }).then(r => {
+        console.log(r);
+      });
+    } else if (op === 'set') {
+      xhr('put', '/kvs/', { key, value, store }).then(r => {
+        console.log(JSON.parse(r));
+      });
+    }
   }
   
+  // CREATE IMAGE
   handleCreateImageClick() {
     console.log('Calling image server');
-    const xhr = new XMLHttpRequest();
-    xhr.onerror = err => console.error(err);
-    xhr.open('get', '/img/random/' + this.state.createImageSize);
-    xhr.onload = () => {
-      const { status, response } = xhr;
-      console.log(status, response);
-      const r = JSON.parse(response);
+    xhr('get', '/img/random/' + this.state.createImageSize).then(r => {
       this.setState({
         createImageUrl: r.url,
         createImageOriginalUrl: r.originalUrl,
         createImageOriginalName: r.originalName,
       });
-    };
-    xhr.send();
+    }, console.error);
   }
   
   
@@ -160,7 +153,7 @@ class TestPage extends React.Component {
         
         <section>
           <h2>readOne</h2>
-          <input type="text" value={state.readOneId} onChange={this.handleReadOneInput.bind(this)} placeholder="id"/>
+          <input type="text" value={state.id} onChange={this.handleInput.bind(this, 'id')} placeholder="id"/>
           <button onClick={this.handleReadOneClick.bind(this)}>{ 'read' + m }</button>
         </section>
         
@@ -169,32 +162,32 @@ class TestPage extends React.Component {
           <input 
             type="text" 
             placeholder="id"
-            value={state.updateOneId} 
-            onChange={this.handleUpdateOneInput.bind(this, 'updateOneId')} />
+            value={state.id} 
+            onChange={this.handleInput.bind(this, 'id')} />
           <input 
             type="text" 
             placeholder="key"
             value={state.updateOneKey} 
-            onChange={this.handleUpdateOneInput.bind(this, 'updateOneKey')} />
+            onChange={this.handleInput.bind(this, 'updateOneKey')} />
           <input 
             type="text" 
             placeholder="value"
             value={state.updateOneValue} 
-            onChange={this.handleUpdateOneInput.bind(this, 'updateOneValue')} />
+            onChange={this.handleInput.bind(this, 'updateOneValue')} />
           <button onClick={this.handleUpdateOneClick.bind(this)}>{ 'update' + m }</button>
         </section>
         
         <section>
           <h2>deleteOne</h2>
-          <input type="text" value={state.deleteOneId} onChange={this.handleDeleteOneInput.bind(this)} placeholder="id"/>
+          <input type="text" value={state.id} onChange={this.handleInput.bind(this, 'id')} placeholder="id"/>
           <button onClick={this.handleDeleteOneClick.bind(this)}>{ 'delete' + m }</button>
         </section>
         
         <section>
           <h2>createUser</h2>
           <div>
-            <input type="text" value={state.createUserEmail} onChange={this.handleCreateUserEmailInput.bind(this)} />
-            <input type="text" value={state.createUserPassword} onChange={this.handleCreateUserPasswordInput.bind(this)} />
+            <input type="text" value={state.createUserEmail} onChange={this.handleInput.bind(this, 'createUserEmail')} />
+            <input type="text" value={state.createUserPassword} onChange={this.handleInput.bind(this, 'createUserPassword')} />
             <button onClick={this.handleCreateUserClick.bind(this)}>createUser</button>
             <button onClick={this.handleCreateUserRandom.bind(this)}>ʘ</button>
           </div>
@@ -205,13 +198,29 @@ class TestPage extends React.Component {
         </section>
         
         <section>
+          <h2>KVS server</h2>
+          <input 
+            type="text" 
+            placeholder="key"
+            value={state.kvsKey} 
+            onChange={this.handleInput.bind(this, 'kvsKey')} />
+          <input 
+            type="text" 
+            placeholder="value"
+            value={state.kvsValue} 
+            onChange={this.handleInput.bind(this, 'kvsValue')} />
+          <button onClick={this.handleCKvsClick.bind(this, 'get')}>Get</button>
+          <button onClick={this.handleCKvsClick.bind(this, 'set')}>Set</button>
+        </section>
+        
+        <section>
           <h2>createImage</h2>
           <div>
-            <input type="integer" value={state.createImageSize} onChange={this.handleCreateImageInput.bind(this)} />
+            <input type="integer" value={state.createImageSize} onChange={this.handleInput.bind(this, 'createImageSize')} />
             <button onClick={this.handleCreateImageClick.bind(this)}>createImage</button>
             
           </div>
-            <img src={state.createImageUrl} />
+            <img src={state.createImageUrl} style={{borderRadius: state.createImageSize/2}}/>
             <span>{ state.createImageOriginalName }</span>
             <img src={state.createImageOriginalUrl} />
           <div>
@@ -222,10 +231,12 @@ class TestPage extends React.Component {
       
       
       <div className="col span_6_of_12">
-      
-        <h2 style={{display: 'inline-block'}}>Records</h2>&nbsp;&nbsp;
+        
+        <div>
+        <h2 style={{display:'inline-block'}}>Records</h2>&nbsp;&nbsp;
         <button onClick={this.handleClear.bind(this)}>Clear</button>
         <button onClick={this.handleDrop.bind(this)} style={{float:'right'}}>Drop database</button>
+        </div>
         <ol start={state.recordsOffset}>
         { 
           props.records.map((record, i) => {

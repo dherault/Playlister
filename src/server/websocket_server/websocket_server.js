@@ -5,10 +5,10 @@ import config from '../config';
 import logg from '../../utils/logger';
 
 const log = (...x) => logg('_w_', ...x);
-
 const { port, serviceSecretNamespace, servicesSecretKey } = config.services.websocket;
 const app = http.createServer((req, res) => log('!!!', 'WS server request'));
 const io = socketIO(app);
+
 app.listen(port, () => console.log('Websocket server listening on port', port));
 
 // Authenticated sockets

@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "clear && npm run static_server & npm run api_server & npm run websocket_server & npm run image_server & npm run kvs_server",
-    "static_server": "babel-node src/server/static_server/static_server.js",
+    "static_server": "nodemon -q -x \"babel-node\" --watch ./src/server/static_server/ -e js ./src/server/static_server/static_server.js",
     "api_server": "nodemon -q -x \"babel-node\" --watch ./src -i ./src/client/ -i ./src/server/static_server/ -i ./src/server/websocket_server/ -i ./src/server/image_server/ -e js ./src/server/API_server/API_server.js",
     "websocket_server": "nodemon -q -x \"babel-node\" --watch ./src/server/websocket_server/ -e js ./src/server/websocket_server/websocket_server.js",
     "image_server": "nodemon -q -x \"babel-node\" --watch ./src/server/image_server/ -i ./src/server/image_server/images/ -e js ./src/server/image_server/image_server.js",
@@ -51,6 +51,6 @@
     "socket.io": "^1.4.5",
     "socket.io-client": "^1.4.5",
     "uuid": "^2.0.1",
-    "xmlhttprequest": "^1.8.0"
+    "xhr2": "^0.1.3"
   }
 }
