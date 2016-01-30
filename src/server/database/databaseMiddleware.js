@@ -1,5 +1,5 @@
 import builders from './queryBuilders';
-import log from '../../utils/logger';
+import log from '../../shared/utils/logger';
 
 let db;
 

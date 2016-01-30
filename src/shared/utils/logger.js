@@ -5,16 +5,28 @@ const colorMatching = { // Color schemes definition, text isn't optionnal
   '!!!': {
     text: 'red'
   },
+  '.:.': {
+    text: 'white',
+    bg: 'green',
+  },
   '...': {
     text: 'gray'
   },
-  '.P.': {
+  'RND': {
+    text: 'white',
+    bg: 'blue'
+  },
+  'KVS': {
+    text: 'white',
+    bg: 'black'
+  },
+  'API': {
     text: 'white',
     bg: 'yellow'
   },
-  'o_o': {
+  'IMG': {
     text: 'white',
-    bg: 'yellow'
+    bg: 'black'
   },
   '.A.': {
     text: 'white',

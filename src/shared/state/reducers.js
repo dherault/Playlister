@@ -6,18 +6,27 @@ const reducers = {
   users: (state={}, { type, params, payload }) => {
     
     log('.R. ' + type); // keep this line in the first reducer
-    return state;
     
-    // switch (type) {
-    //   case 'UPDATE_USER_PICTURE':
-    //     const { id } = params;
-    //     const newState = Object.assign({}, state);
-    //     delete params.id;
-    //     return Object.assign({}, newState, { [id]: Object.assign({}, newState[id], params) });
+    switch (type) {
       
-    //   default:
-    //     return state;
-    // }
+      case 'SUCCESS_LOGIN':
+        return Object.assign({}, state, { [payload._id]: Object.assign({}, payload) });
+      
+      default:
+        return state;
+    }
+  },
+  
+  session: (state={}, { type, params, payload }) => {
+    switch (type) {
+      
+      case 'SUCCESS_CREATE_USER':
+      case 'SUCCESS_LOGIN':
+        return { userId: payload._id };
+      
+      default:
+        return state;
+    }
   },
   
   // Side effects and logging reducers

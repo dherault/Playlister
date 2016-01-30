@@ -1,12 +1,13 @@
 import io from 'socket.io-client';
 
-import log from '../utils/logger';
-import ac from '../state/actionCreators';
+import config from '../config';
+import log from '../shared/utils/logger';
+import ac from '../shared/state/actionCreators';
 
 
 export default store => {
   
-  const socket = io('http://localhost:8282/users');
+  const socket = io(config.services.websocket.url + 'users');
   const { dispatch, getState, suscribe } = store;
   
   // suscribe(() => {

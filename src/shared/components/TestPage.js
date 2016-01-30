@@ -2,10 +2,11 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
 
+import config from '../../config';
 import ac from '../state/actionCreators';
 import definitions from '../models/definitions';
-import { capitalizeFirstChar } from '../utils/textUtils';
 import xhr from '../utils/xhr';
+import { capitalizeFirstChar } from '../utils/textUtils';
 import { randomInteger, randomString, randomEmail } from '../utils/randomUtils';
 
 const cfc = capitalizeFirstChar;
@@ -91,16 +92,17 @@ class TestPage extends React.Component {
   
   // KVS SERVER
   handleCKvsClick(op) {
+    const url = config.services.kvs.url;
     const key = this.state.kvsKey;
     const value = this.state.kvsValue;
     const store = 'test';
     
     if (op === 'get') {
-      xhr('get', '/kvs/', { key, store }).then(r => {
+      xhr('get', url, { key, store }).then(r => {
         console.log(r);
       });
     } else if (op === 'set') {
-      xhr('put', '/kvs/', { key, value, store }).then(r => {
+      xhr('put', url, { key, value, store }).then(r => {
         console.log(JSON.parse(r));
       });
     }
@@ -109,7 +111,7 @@ class TestPage extends React.Component {
   // CREATE IMAGE
   handleCreateImageClick() {
     console.log('Calling image server');
-    xhr('get', '/img/random/' + this.state.createImageSize).then(r => {
+    xhr('get', config.services.image.url + 'random/' + this.state.createImageSize).then(r => {
       this.setState({
         createImageUrl: r.url,
         createImageOriginalUrl: r.originalUrl,

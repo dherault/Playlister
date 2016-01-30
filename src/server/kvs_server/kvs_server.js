@@ -1,24 +1,26 @@
-/* key-value store server with caching */
-
 import Hapi from 'hapi';
 import Catbox from 'catbox';
 import CatboxMongo from 'catbox-mongodb';
-import io from 'socket.io-client';
+// import io from 'socket.io-client';
 
-import config from '../config';
-import log, { logError } from '../../utils/logger';
+import config from '../../config';
+import log, { logError } from '../../shared/utils/logger';
 
-const ttl = 1000 * 60;
+/* 
+  A key-value storage server with caching 
+*/
+
 const server = new Hapi.Server();
 const port = config.services.kvs.port;
-const options = { partition: config.mongo.dbs.kvs , uri: config.mongo.uri };
+const options = { partition: config.mongo.dbs.kvs , uri: config.mongo.url };
 const mongoClient = new Catbox.Client(CatboxMongo, options);
 
 server.connection({ port });
 
 server.route({
-  method: 'get', 
-  path: '/kvs/',
+  method: 'GET',
+  path: '/',
+  config: { cors: true }, // For the test page to make CORS calls
   handler: (request, reply) => {
     
     const { store, key } = request.query;
@@ -27,7 +29,7 @@ server.route({
       return response.send();
     }
     
-    log('KVS get', key);
+    log('KVS Get', key);
     const response = reply.response().hold();
     
     mongoClient.get({ segment: store, id: key }, (err, cached) => {
@@ -47,8 +49,9 @@ server.route({
 });
 
 server.route({
-  method: 'put', 
-  path: '/kvs/',
+  method: 'PUT', 
+  path: '/',
+  config: { cors: true }, // For the test page to make CORS calls
   handler: (request, reply) => {
     
     const { key, value, store, ttl } = request.payload;
@@ -57,7 +60,7 @@ server.route({
       return response.send();
     }
     
-    log('KVS set', key, value);
+    log('KVS Set', key, value);
     const response = reply.response().hold();
     
     mongoClient.set({ id: key, segment: store }, value, ttl || 1000 * 60, err => {
@@ -73,9 +76,9 @@ server.route({
   }
 });
 
-server.start(() => {
+server.start(err => {
+  if (err) throw err;
   mongoClient.start(() => {
-    log('KVS server listening on port', port);
-    
+    log('.:. KVS server listening on port', port);
   });
 });

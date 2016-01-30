@@ -1,4 +1,4 @@
-import ac from '../state/actionCreators';
+import ac from '../shared/state/actionCreators';
 import { routeActions } from 'react-router-redux';
 
 const goToUserProfile = (store, state, action) => store.dispatch(routeActions.push('/@' + action.payload.username));

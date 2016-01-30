@@ -1,8 +1,8 @@
 import { MongoClient } from 'mongodb';
 
-import config from '../config';
-import log from '../../utils/logger';
-import definitions from '../../models/definitions';
+// import config from '../../config';
+import log from '../../shared/utils/logger';
+import definitions from '../../shared/models/definitions';
 
 // Only promisers (fn that returns a promise)
 

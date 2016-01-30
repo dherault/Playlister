@@ -1,8 +1,8 @@
 import { ObjectID } from 'mongodb';
 
-import log from '../../utils/logger';
-import { capitalizeFirstChar } from '../../utils/textUtils';
-import definitions from '../../models/definitions';
+import log from '../../shared/utils/logger';
+import { capitalizeFirstChar } from '../../shared/utils/textUtils';
+import definitions from '../../shared/models/definitions';
 
 // Field filtering on/off
 const noDisclosure = { fields: { createdAt: 0, updatedAt: 0, creationIp: 0, passwordHash: 0 } };

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import gm from 'gm';
-import { isNumeric } from '../../utils/numberUtils';
+import { isNumeric } from '../../shared/utils/numberUtils';
 
 // Use this to enable/disable logging
 function log(...msg) {

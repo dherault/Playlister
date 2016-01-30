@@ -15,7 +15,7 @@ const WDSConfig = {
   //   extensions: ['', '.js', '.jsx']
   // },
   output: {
-    path: require('path').resolve('./src/server/static_server/public/'),
+    path: require('path').resolve('./src/server/public/'),
     filename: 'bundle.js',
     publicPath: '/static/',
   },
@@ -23,8 +23,6 @@ const WDSConfig = {
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
     new webpack.IgnorePlugin(/databaseMiddleware/), // beware
-    new webpack.IgnorePlugin(/exports/), // beware
-    new webpack.ContextReplacementPlugin(/exports/, {})
   ],
   devtool: 'eval',
   module: {
@@ -60,7 +58,7 @@ bundle.plugin('done', () => {
 });
 
 new WDS(bundle, {
-  contentBase: './src/server/static_server/public',
+  contentBase: './src/server/public',
   publicPath: WDSConfig.output.publicPath,
   hot: true,
   noInfo : true,

@@ -5,45 +5,27 @@ import bcrypt from 'bcrypt';
 import io from 'socket.io-client';
 import hapiAuthJWT from 'hapi-auth-jwt2'; // http://git.io/vT5dZ
 
-import config from '../config';
-import xhr from '../../utils/xhr';
-import log, { logError } from '../../utils/logger';
-import actionCreators from '../../state/actionCreators';
+import config from '../../config';
+import xhr from '../../shared/utils/xhr';
+import log, { logError } from '../../shared/utils/logger';
+import actionCreators from '../../shared/state/actionCreators';
 import { connect, createCollections, dropDatabase } from '../database/databaseUtils';
 import queryDatabase, { initMiddleware } from '../database/databaseMiddleware';
 
-// bring your own validation function
-function validate(decoded, request, callback) {
-  console.log(" - - - - - - - DECODED token:");
-  console.log(decoded);
-  
-  // do your checks to see if the session is valid
-  xhr('get', config.services.kvs.url, { store: config.jwt.kvsStore, key: decoded.id }).then(session => {
-    console.log(' - - - - - - - KVS reply - - - - - - - ', session);
-    
-    if (session.valid === true) {
-      return callback(null, true);
-    }
-    else {
-      return callback(null, false);
-    }
-    
-  }, err => {
-    console.error(err);
-    callback(err, false);
-  });
-}
+/*
+  A RESTful JSON API server, based on actionCreators
+*/
 
 const server = new Hapi.Server();
 const port = config.services.api.port;
+
 server.connection({ port });
 
 // Connects to the mongo database
-connect(config.mongo.url)
+connect(config.mongo.url + config.mongo.dbs.main)
 // .then(dropDatabase)
 .then(createCollections)
 .then(db => {
-  
   
   server.register(hapiAuthJWT, err => {
     
@@ -51,9 +33,8 @@ connect(config.mongo.url)
     
     server.auth.strategy('jwt', 'jwt', true, { 
       key: config.jwt.key,
-      validateFunc: validate,
+      verifyFunc: validate,
       verifyOptions: { ignoreExpiration: true, algorithms: [ 'HS256' ] },
-      cookieKey: 'jwt'
     });
   
     // Passes the mongoclient object to db middleware
@@ -108,8 +89,8 @@ connect(config.mongo.url)
           };
           
           queryDatabase('updateUser', data).then(result => socket.emit('noticeUpdateUser', data), 
-            err => console.error(err));
-        }, err => console.error(err));
+            err => logError('API createUser afterQuery queryDatabase error', err));
+        }, err => logError('API createUser afterQuery xhr error', err));
         
         return Promise.resolve(r);
       },
@@ -131,7 +112,7 @@ connect(config.mongo.url)
       }),
     };
     
-    const resolve = x => Promise.resolve(x); // names are fun too
+    const resolve = x => Promise.resolve(x);
     
     // Dynamic construction of API routes based on actionCreators with API call
     for (let acKey in actionCreators) {
@@ -152,7 +133,7 @@ connect(config.mongo.url)
             const response = reply.response().hold();
             const params = method === 'post' || method === 'put' ? request.payload : request.query;
             
-            console.log('API', request.path, params);
+            log('API', method, path, params);
             
             before(params, request).then(modifiedParams => 
               queryDatabase(intention, modifiedParams).then(result => 
@@ -219,15 +200,15 @@ connect(config.mongo.url)
       xhr('put', config.services.kvs.url, { 
         key: session.id, 
         value: session,
-        store: 'sessions',
+        store: config.jwt.kvsStore,
         ttl: config.jwt.cookieOptions.ttl,
-      });
+      }).catch(err => logError('API kvs put', err));
       
       // sign the session as a JWT
       const token = JWT.sign(session, config.jwt.secretKey); // synchronous
       console.log(token);
       
-      if (response) response.header("Authorization", token).state("jwt", token, config.jwt.cookieOptions);
+      if (response) response.header("Authorization", token).state("token", token, config.jwt.cookieOptions);
       
       return token;
     }
@@ -256,8 +237,24 @@ connect(config.mongo.url)
       else return before;
     }
     
+    // bring your own validation function
+    function validate(decoded, request, callback) {
+      console.log(" - - - - - - - DECODED token:");
+      console.log(decoded);
+      
+      // do your checks to see if the session is valid
+      xhr('get', config.services.kvs.url, { store: config.jwt.kvsStore, key: decoded.id }).then(session => {
+        console.log(' - - - - - - - KVS reply - - - - - - - ', session);
+        callback(null, session.valid, session);
+        
+      }, ({ status, response, error }) => {
+        logError('API validate kvs error', status, response, error);
+        callback(error, false);
+      });
+    }
+    
     server.start(() => {
-      log('API listening on port', port);
+      log('API', 'API listening on port', port);
     });
     
   });

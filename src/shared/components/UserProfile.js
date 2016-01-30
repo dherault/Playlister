@@ -21,11 +21,29 @@ class UserProfile extends React.Component {
   
   render() {
     
-    return <div>
+    const { users, routeParams: { username } } = this.props;
+    
+    console.log(this.props.routeParams.username);
+    const user = users[Object.keys(users).find(key => users[key].username === username)];
+    if (!user) throw new Error('no user found in store!');
+    console.log(user);
+    
+    const wrapperStyle = {
+      width: '80%',
+      margin: 'auto',
+    };
+    
+    const profileStyle = {
+      textAlign: 'center',
+    };
+    
+    return <div style={wrapperStyle}>
+      <Link to="/test">Test Page</Link>&nbsp;
       <Link to="/">Landing Page</Link>&nbsp;
-      <Link to="/test">Test Page</Link>
-      <div>
-        { this.props.user }
+      <div style={profileStyle}>
+        <div>{ user._id }</div>
+        <div>{ user.username }</div>
+        <img src={user.imageUrl} style={{borderRadius:100}}/>
       </div>
       <Paper>Playlists
       </Paper>
@@ -33,4 +51,4 @@ class UserProfile extends React.Component {
   }
 }
 
-export default connect(s => ({ user: s.user }))(UserProfile);
+export default connect(s => ({ users: s.users, routing: s.routing }))(UserProfile);

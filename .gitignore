@@ -1,4 +1,5 @@
 # images
+src/server/public/images
 src/server/image_server/images/base/*
 src/server/image_server/images/generated/*
 
