@@ -52,7 +52,7 @@
     "react-router": "2.0.0-rc5",
     "react-router-redux": "^2.1.0",
     "react-tap-event-plugin": "^0.2.2",
-    "redux": "^3.1.5",
+    "redux": "^3.1.6",
     "socket.io": "^1.4.5",
     "socket.io-client": "^1.4.5",
     "uuid": "^2.0.1",
