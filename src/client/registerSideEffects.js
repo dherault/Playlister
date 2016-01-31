@@ -13,15 +13,14 @@ const sideEffects = {
   
 export default function registerSideEffects(store, ...additionnalSideEffects) {
   
-  let recordsIndex = 0;
-  const { getState, dispatch } = store;
+  // Lets add the additionnalSideEffects to the old ones
+  const finalSideEffects = Object.assign({}, sideEffects);
   
-  // Lets add the new arg-given SE to the old ones
-  let finalSideEffects = Object.assign({}, sideEffects);
   additionnalSideEffects.forEach(ase => {
     for (let key in ase) {
       const existant = finalSideEffects[key];
-      // if a SE allready exists, then both are invoked with a coercive function
+      
+      // if a SE allready exists, then both are invoked in a new function
       if (existant) finalSideEffects[key] = (s, a, d) => {
         existant(s, a, d);
         ase[key](s, a, d);
@@ -30,12 +29,16 @@ export default function registerSideEffects(store, ...additionnalSideEffects) {
     }
   });
   
+  let recordsIndex = 0;
+  const { getState, dispatch } = store;
+  
   store.subscribe(() => {
     
     const state = getState();
     const records = state.records;
     const recordsLength = records.length;
     
+    // Looks for new action records and checks for associated side effects
     for (let i = recordsIndex; i < recordsLength; i++) {
       recordsIndex++; // Don't use recordsIndex as the loop variable, bad things happen if a SE dispatches
       const action = records[i];

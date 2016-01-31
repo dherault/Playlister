@@ -5,6 +5,7 @@ import App from './components/App';
 import LandingPage from './components/LandingPage';
 import TestPage from './components/TestPage';
 import UserProfile from './components/UserProfile';
+import NotFound from './components/NotFound';
 
 export default (
   
@@ -12,6 +13,7 @@ export default (
     <IndexRoute component={LandingPage}/>
     <Route path="test" component={TestPage} />
     <Route path="@:username" component={UserProfile} />
+    <Route path="*" component={NotFound} />
   </Route>
   
 );

@@ -1,8 +1,9 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { syncHistory, routeReducer } from 'react-router-redux';
+import { Router, RouterContext, browserHistory } from 'react-router';
 import { createStore, combineReducers, applyMiddleware } from 'redux';
-import { Router, browserHistory, createMemoryHistory } from 'react-router';
+// RouterContext gets imported to client for now;
 
 import routes from './routes';
 import log from './utils/logger';
@@ -11,30 +12,32 @@ import reducers from './state/reducers';
 import promiseMiddleware from './state/promiseMiddleware';
 // import sideEffects from '../../client/sideEffects';
 
-export default function createApp(initialState) {
+export default function createApp(initialState, renderProps={}) {
   
   log('... Initializing UI and store');
   
-  const history = isServer ? createMemoryHistory() : browserHistory;
+  let enhance, reducer, router;
   
-  const routerMiddleware = syncHistory(history);
+  if (isServer) {
+    enhance = applyMiddleware(promiseMiddleware);
+    reducer = combineReducers(reducers);
+    router = <RouterContext {...renderProps} />;
+    
+  } else {
+    const history = browserHistory;
+    const routerMiddleware = syncHistory(history);
+    enhance = applyMiddleware(routerMiddleware, promiseMiddleware);
+    reducer = combineReducers(Object.assign({}, reducers, { routing: routeReducer }));
+    router = <Router history={history} routes={routes} />;
+    
+    // Enables Webpack hot module replacement for reducers
+    if (module.hot) module.hot.accept('./state/reducers.js', () => store.replaceReducer(require('./state/reducers.js')));
+  }
   
-  const middlewares = applyMiddleware(routerMiddleware, promiseMiddleware);
+  const store = enhance(createStore)(reducer, initialState);
   
-  const reducer = combineReducers(Object.assign({}, reducers, {
-    routing: routeReducer
-  }));
-  
-  const store = middlewares(createStore)(reducer, initialState);
-  
-  // Enables Webpack hot module replacement for reducers
-  if (module.hot) module.hot.accept('./state/reducers.js', () => store.replaceReducer(require('./state/reducers.js')));
-  
-  const userInterface = (
-    <Provider store={store}>
-      <Router history={history} routes={routes} />
-    </Provider>
-  );
-  
-  return { store, userInterface, history };
+  return {
+    store,
+    userInterface: <Provider store={store} children={router} />
+  };
 }

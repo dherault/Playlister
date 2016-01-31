@@ -2,7 +2,7 @@ import isServer from './isServer';
 import log from './logger';
 
 // A promise wrapper around XMLHttpRequest 
-export default function xhr(method, path, params, headers) {
+export default function xhr(method, path, params, withCredentials=false) {
   
   log('... xhr', method, path, params || '');
   
@@ -14,7 +14,7 @@ export default function xhr(method, path, params, headers) {
     const Xhr = isServer ? require('xhr2') : XMLHttpRequest;
     
     const xhr = new Xhr();
-    xhr.withCredentials = true;
+    if (withCredentials) xhr.withCredentials = true;
     const m = method.toLowerCase();
     const isPost = m === 'post' || m === 'put';
     
@@ -49,12 +49,6 @@ export default function xhr(method, path, params, headers) {
         reject({ error, status, response });
       }
     };
-    
-    if (headers) {
-      for (let key in headers) {
-        xhr.setRequestHeader(key, headers[key]);
-      }
-    }
     
     if (isPost) {
       xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");

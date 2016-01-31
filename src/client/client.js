@@ -19,7 +19,7 @@ const { store, userInterface } = createApp(window.STATE_FROM_SERVER || {});
 
 ReactDOM.render(
   userInterface,
-  document.getElementById('mount-node'),
+  document.getElementById('mountNode'),
   () => console.log('App rendered.')
 );
 

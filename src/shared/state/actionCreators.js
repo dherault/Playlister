@@ -57,7 +57,7 @@ function createActionCreator(shape) {
     log('.A.', intention, params ? JSON.stringify(params) : '');
     log(`+++ --> ${method} ${path}`, params);
     
-    const promise = xhr(method, config.services.api.url + path, params);
+    const promise = xhr(method, config.services.api.url + path, params, true);
     
     // New promise chain because promiseMiddleware is the end catcher
     promise.then(result => {

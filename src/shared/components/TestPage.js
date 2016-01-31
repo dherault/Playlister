@@ -22,7 +22,7 @@ class TestPage extends React.Component {
       id: '',
       updateOneKey: '',
       updateOneValue: '',
-      createUserEmail: randomEmail(),
+      createUserEmail: '',
       createUserPassword: '12345678',
       createImageSize: 200,
       createImageUrl: '',
@@ -31,6 +31,10 @@ class TestPage extends React.Component {
       kvsKey: '',
       kvsValue: '',
     };
+  }
+  
+  componentDidMount() {
+    this.handleCreateUserRandom();
   }
   
   handleClear() {

@@ -33,7 +33,7 @@ const reducers = {
   },
   
   // Side effects and logging reducers
-  lastAction: (state={}, action) => action,
+  // lastAction: (state={}, action) => action,
   records: (state=[], action) => [...state, Object.assign({ date: new Date().getTime() }, action)],
 };
 

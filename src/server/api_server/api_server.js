@@ -5,7 +5,7 @@ import hapiAuthJWT from 'hapi-auth-jwt2'; // http://git.io/vT5dZ
 
 import config from '../../config';
 import xhr from '../../shared/utils/xhr';
-import log, { logError } from '../../shared/utils/logger';
+import log, { logError, logRequest } from '../../shared/utils/logger';
 import actionCreators from '../../shared/state/actionCreators';
 import { addJWTAuthStrategyTo, createSession } from '../utils/authUtils';
 import connectToWebsocketService from '../utils/connectToWebsocketService';
@@ -20,6 +20,12 @@ const server = new Hapi.Server();
 const port = config.services.api.port;
 
 server.connection({ port });
+
+server.ext('onRequest', (request, reply) => {
+  logRequest('API', request);
+  reply.continue();
+});
+
 server.register(hapiAuthJWT, err => {
   
   if (err) throw err;

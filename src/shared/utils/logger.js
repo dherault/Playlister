@@ -93,3 +93,24 @@ export function logError(msg, error) {
   } 
   else log('!!!', msg, err);
 }
+
+// Logs informations regarding a Hapi.js request
+let c = 0;
+function preprendZero(i) {
+  const ii = i.toString();
+  return ii.length > 1 ? ii : '0' + ii;
+}
+
+export function logRequest(prefix, {info: {remoteAddress}, method, url: {path}}) {
+  c++;
+  const d = new Date();
+  // const Y = d.getFullYear();
+  // const D = preprendZero(d.getDate());
+  // const M = preprendZero(d.getMonth());
+  const h = preprendZero(d.getHours());
+  const m = preprendZero(d.getMinutes());
+  const s = preprendZero(d.getSeconds());
+  log('\n');  
+  // log(prefix, `[${c}]`, `${D}-${M}-${Y} ${h}:${m}:${s} ${remoteAddress}:${remotePort} ${method} ${path}`);
+  log(prefix, `[${c}]`, `${h}:${m}:${s} ${remoteAddress} ${method} ${path}`);
+}
