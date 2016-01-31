@@ -7,7 +7,7 @@ import config from '../../config';
 import xhr from '../../shared/utils/xhr';
 import log, { logError } from '../../shared/utils/logger';
 import actionCreators from '../../shared/state/actionCreators';
-import { validateSession, createSession } from '../utils/authUtils';
+import { addJWTAuthStrategyTo, createSession } from '../utils/authUtils';
 import connectToWebsocketService from '../utils/connectToWebsocketService';
 import queryDatabase, { initMiddleware } from '../database/databaseMiddleware';
 import { connect, createCollections, dropDatabase } from '../database/databaseUtils';
@@ -25,11 +25,7 @@ server.register(hapiAuthJWT, err => {
   if (err) throw err;
   
   // Authentication strategy
-  server.auth.strategy('jwt', 'jwt', true, { 
-    key: config.jwt.key,
-    verifyFunc: validateSession,
-    verifyOptions: { ignoreExpiration: true, algorithms: [ 'HS256' ] },
-  });
+  addJWTAuthStrategyTo(server);
   
   // Sets options for the auth cookie
   server.state('token', config.jwt.cookieOptions);
@@ -58,10 +54,9 @@ server.register(hapiAuthJWT, err => {
   // Same but after the query
   const afterQuery = {
     
-    createUser: (result, params, request, response) => {
+    createUser: (result, params, request) => {
       
-      const token = createSession(response);
-      response.header("Authorization", token).state("token", token, config.jwt.cookieOptions);
+      result.token = createSession(result._id);
       
       const r = Object.assign({}, result);
       ['passwordHash', 'createdAt', 'updatedAt', 'creationIp'].map(x => delete r[x]);
@@ -81,14 +76,14 @@ server.register(hapiAuthJWT, err => {
       return Promise.resolve(r);
     },
     
-    login: (result, { email, password }, request, response) => new Promise((resolve, reject) => {
+    login: (result, { email, password }, request) => new Promise((resolve, reject) => {
       if (result) bcrypt.compare(password, result.passwordHash, (err, isValid) => {
         if (err) return reject(createReason(500, 'login bcrypt.compare', err));
         
         if (isValid) {
           delete result.passwordHash; // We know how to keep secrets
           
-          result.token = createSession(response);
+          result.token = createSession(result._id);
           
           resolve(result);
         }
@@ -96,6 +91,17 @@ server.register(hapiAuthJWT, err => {
       });
       else reject(createReason(401, 'User not found'));
     }),
+    
+    logout: (result, params, request) => {
+      const session = Object.assign({}, request.auth.credentials);
+      session.valid = false;
+      return xhr('put', config.services.kvs.url, { 
+        key: session.id, 
+        value: session,
+        store: config.jwt.kvsStore,
+        ttl: config.jwt.cookieOptions.ttl,
+      }).then(() => true);
+    }
   };
   const resolve = x => Promise.resolve(x);
   
@@ -112,24 +118,25 @@ server.register(hapiAuthJWT, err => {
       server.route({
         method, 
         path: '/' + path,
-        config: { auth: auth ? 'jwt' : false, cors: true },
+        config: { 
+          auth: auth ? 'jwt' : false, // No auth mode like 'try', it's strict or nothing
+          cors: { credentials: true }, // Allows CORS requests to be made with credentials
+        },
         handler: (request, reply) => {
           
           const response = reply.response().hold();
           const params = method === 'post' || method === 'put' ? request.payload : request.query;
           
           log('API', method, path, params);
+          log('API', 'state', request.state);
           
           before(params, request).then(modifiedParams => 
             queryDatabase(intention, modifiedParams).then(result => 
               after(result, modifiedParams, request, response).then(modifiedResult => {
                   
                   if (modifiedResult.token) {
-                    // Find a way to modify cookie options globally
                     response.header("Authorization", modifiedResult.token)
                       .state("token", modifiedResult.token);
-                    delete modifiedResult.token;
-                    
                   } else if (auth) {
                     response.header("Authorization", request.headers.authorization)
                       .state("token", request.headers.authorization);

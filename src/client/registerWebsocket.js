@@ -4,26 +4,21 @@ import config from '../config';
 import log from '../shared/utils/logger';
 import ac from '../shared/state/actionCreators';
 
-
 export default store => {
   
   const socket = io(config.services.websocket.url + 'users');
-  const { dispatch, getState, suscribe } = store;
+  const { dispatch, getState, subscribe } = store;
   
-  // suscribe(() => {
-  //   const { lastAction } = getState();
-    
-  //   switch(lastAction.type) {
-  //     case 'SUCCESS_LOGIN':
-  //       socket.emit('')
-  //       break;
-  //   }
-  // });
+  // Websocket-related side effects
+  const sideEffects = {
+    SUCCESS_LOGIN: state => socket.emit('auth', state.session.token),
+    SUCCESS_CREATE_USER: state => socket.emit('auth', state.session.token),
+  };
   
   const handlers = {
     message: data => {},
     
-    updateUser: data => dispatch(ac.updateUserPicture(data)),
+    updatedUser: data => dispatch(({ type: 'SUCCESS_UPDATE_USER', params: data, payload: undefined })),
   };
   
   for (let key in handlers) {
@@ -32,4 +27,6 @@ export default store => {
       handlers[key](data);
     });
   }
+  
+  return sideEffects;
 };

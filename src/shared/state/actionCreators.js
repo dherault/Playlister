@@ -9,27 +9,32 @@ const cac = createActionCreator;
 // An action creator takes a k/v object argument and outputs a standard action
 const actionCreators = {
   
-  drop: cac({
-    intention:  'drop',
-    method:     'delete',
-    path:      'drop',
-    auth:       true,
-  }),
-  
-  logout: () => ({ type: 'LOGOUT' }),
-  
   login: cac({
     intention:  'login',
     method:     'post',
-    path:      'login',
+    path:       'login',
     auth:       false,
   }),
   
+  logout: cac({
+    intention:  'logout',
+    method:     'get',
+    path:       'logout',
+    auth:       true,
+  }),
+  
+  drop: cac({
+    intention:  'drop',
+    method:     'delete',
+    path:       'drop',
+    auth:       true,
+  }),
+  
   readAll: cac({
-    intention: 'readAll',
-    method: 'get',
-    path: 'readAll',
-    auth: false, // !
+    intention:  'readAll',
+    method:     'get',
+    path:       'readAll',
+    auth:       false, // !
   }),
 };
 

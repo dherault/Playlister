@@ -1,12 +1,11 @@
 import fs from 'fs';
 import Hapi from 'hapi';
-import uuid from 'uuid';
-import JWT from 'jsonwebtoken';
 import hapiAuthJWT from 'hapi-auth-jwt2'; // http://git.io/vT5dZ
 
 import config from '../../config';
-import xhr from '../../shared/utils/xhr';
+// import xhr from '../../shared/utils/xhr';
 import log, { logError } from '../../shared/utils/logger';
+import { addJWTAuthStrategyTo } from '../utils/authUtils';
 
 /*
   This rendering server is the main endpoint for the app
@@ -24,21 +23,27 @@ server.register(hapiAuthJWT, err => {
   
   if (err) throw err;
   
-  server.auth.strategy('jwt', 'jwt', true, { 
-    key: config.jwt.key,
-    verifyFunc: validate,
-    verifyOptions: { ignoreExpiration: true, algorithms: [ 'HS256' ] },
-  });
+  // Authentication strategy
+  addJWTAuthStrategyTo(server);
   
   server.route({
     method: 'get', 
     path: '/{p*}', // catch all
-    config: { auth: false },
+    config: { auth: { mode: 'try' } }, 
     handler: (request, reply) => {
       
       const response = reply.response().hold();
       // const params = method === 'post' || method === 'put' ? request.payload : request.query;
       log('RND', 'Get', request.path, request.info.remoteAddress);
+      log('RND', 'state', request.state);
+      log('RND', 'auth', request.auth.credentials);
+      
+      // let retrieveUserIdFromCookie = Promise.resolve();
+      // if (request.state.token) retrieveUserIdFromCookie = verifyToken(verifyToken);
+      
+      // retrieveUserIdFromCookie.then(userId => {
+        
+      // })
       
       // response.source = html.replace('<body>', `<body><div id="mountNode">${mountMeImFamous}</div>` +
       //   `<script>window.STATE_FROM_SERVER=${JSON.stringify(serverState)}</script>` +
@@ -50,46 +55,6 @@ server.register(hapiAuthJWT, err => {
       
     }
   });
-  
-  // bring your own validation function
-  function validate(decoded, request, callback) {
-    console.log(" - - - - - - - DECODED token:");
-    console.log(decoded);
-    
-    // do your checks to see if the session is valid
-    xhr('get', config.services.kvs.url, { store: config.jwt.kvsStore, key: decoded.id }).then(session => {
-      console.log(' - - - - - - - KVS reply - - - - - - - ', session);
-      callback(null, session.valid, session);
-      
-    }, err => {
-      logError('RND validate kvs error', err);
-      callback(err, false);
-    });
-  }
-  
-  function createSession(response) {
-    var session = {
-      valid: true, // this will be set to false when the person logs out
-      id: uuid(), // a random session id
-      exp: new Date().getTime() + config.jwt.cookieOptions.ttl
-    };
-    
-    // create the session in kvs
-    xhr('put', config.services.kvs.url, { 
-      key: session.id, 
-      value: session,
-      store: config.jwt.kvsStore,
-      ttl: config.jwt.cookieOptions.ttl,
-    }).catch(err => logError('API kvs put', err));
-    
-    // sign the session as a JWT
-    const token = JWT.sign(session, config.jwt.secretKey); // synchronous
-    console.log(token);
-    
-    if (response) response.header("Authorization", token).state("jwt", token, config.jwt.cookieOptions);
-    
-    return token;
-  }
   
   server.start(() => {
     log('.:. Rendering server listening on port', port);

@@ -23,10 +23,8 @@ class UserProfile extends React.Component {
     
     const { users, routeParams: { username } } = this.props;
     
-    console.log(this.props.routeParams.username);
     const user = users[Object.keys(users).find(key => users[key].username === username)];
     if (!user) throw new Error('no user found in store!');
-    console.log(user);
     
     const wrapperStyle = {
       width: '80%',

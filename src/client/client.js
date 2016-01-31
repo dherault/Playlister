@@ -3,11 +3,11 @@ import ReactDOM from 'react-dom';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 
 import createApp from '../shared/createApp';
-import registerSideEffects from './sideEffects';
-import registerShortcuts from './shortcuts';
-import registerWebsocket from './websocket';
+import registerSideEffects from './registerSideEffects';
+import registerShortcuts from './registerShortcuts';
+import registerWebsocket from './registerWebsocket';
 
-console.log('hi!');
+console.log('Hi!');
 
 // Needed for onTouchTap
 // Can go away when react 1.0 release
@@ -23,8 +23,8 @@ ReactDOM.render(
   () => console.log('App rendered.')
 );
 
-registerSideEffects(store);
-// registerWebsocket(store);
+const websocketSideEffects = registerWebsocket(store);
+registerSideEffects(store, websocketSideEffects);
 registerShortcuts(store);
 
 require('./stylesheets/app.css');

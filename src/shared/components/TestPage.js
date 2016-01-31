@@ -200,6 +200,11 @@ class TestPage extends React.Component {
         </section>
         
         <section>
+          <h2>Logout</h2>
+          <button onClick={() => props.dispatch(ac.logout())}>Bye bye!</button>
+        </section>
+        
+        <section>
           <h2>KVS server</h2>
           <input 
             type="text" 

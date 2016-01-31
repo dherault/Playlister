@@ -9,6 +9,7 @@ import log from './utils/logger';
 import isServer from './utils/isServer';
 import reducers from './state/reducers';
 import promiseMiddleware from './state/promiseMiddleware';
+// import sideEffects from '../../client/sideEffects';
 
 export default function createApp(initialState) {
   
@@ -18,9 +19,7 @@ export default function createApp(initialState) {
   
   const routerMiddleware = syncHistory(history);
   
-  const middlewares = isServer ? 
-    applyMiddleware(routerMiddleware, promiseMiddleware) :
-    applyMiddleware(routerMiddleware, promiseMiddleware/*, websocketMiddleware*/);
+  const middlewares = applyMiddleware(routerMiddleware, promiseMiddleware);
   
   const reducer = combineReducers(Object.assign({}, reducers, {
     routing: routeReducer

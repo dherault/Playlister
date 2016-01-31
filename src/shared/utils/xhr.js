@@ -14,6 +14,7 @@ export default function xhr(method, path, params, headers) {
     const Xhr = isServer ? require('xhr2') : XMLHttpRequest;
     
     const xhr = new Xhr();
+    xhr.withCredentials = true;
     const m = method.toLowerCase();
     const isPost = m === 'post' || m === 'put';
     

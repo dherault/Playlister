@@ -17,7 +17,8 @@ let builders = {
   // Reads all documents for a given collection
   readAll: (db, params) => db.collection(params.collection).find({}, noDisclosure).toArray().then(normalize),
   
-  login: (db, { email }) => db.collection('users').findOne({ email }, noDisclosureLogin)
+  login: (db, { email }) => db.collection('users').findOne({ email }, noDisclosureLogin),
+  logout: () => Promise.resolve(),
 };
 
 // Defaults can be overwritten

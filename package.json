@@ -6,7 +6,7 @@
   "repository": "https://github.com/dherault/Playlister.git",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "print_node_info": "node ./src/server/printNodeInfo.js",
+    "print_node_info": "node ./src/server/utils/printNodeInfo.js",
     "start": "clear && npm run print_node_info && npm run run_all",
     "run_all": "npm run webpack_server & npm run asset_server & npm run rendering_server & npm run api_server & npm run websocket_server & npm run kvs_server & npm run image_server",
     "webpack_server": "nodemon -q -x \"babel-node\" -w ./src/server/webpack_server/ -e js ./src/server/webpack_server/webpack_server.js",

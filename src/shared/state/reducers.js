@@ -22,7 +22,10 @@ const reducers = {
       
       case 'SUCCESS_CREATE_USER':
       case 'SUCCESS_LOGIN':
-        return { userId: payload._id };
+        return { userId: payload._id, token: payload.token };
+        
+      case 'SUCCESS_LOGOUT':
+        return {};
       
       default:
         return state;
