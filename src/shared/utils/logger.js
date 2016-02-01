@@ -16,6 +16,10 @@ const colorMatching = { // Color schemes definition, text isn't optionnal
     text: 'white',
     bg: 'blue'
   },
+  '.P.': {
+    text: 'white',
+    bg: 'blue'
+  },
   'KVS': {
     text: 'white',
     bg: 'black'

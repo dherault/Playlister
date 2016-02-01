@@ -7,12 +7,14 @@ import config from '../../config';
 import log, { logError } from '../../shared/utils/logger';
 
 /* 
-  A key-value storage server with caching 
+  A key-value storage server with caching
 */
 
-const server = new Hapi.Server();
+const defaulTtl = 1000 * 60 * 60 * 24; // 1 day
 const port = config.services.kvs.port;
 const options = { partition: config.mongo.dbs.kvs , uri: config.mongo.url };
+
+const server = new Hapi.Server();
 const mongoClient = new Catbox.Client(CatboxMongo, options);
 
 server.connection({ port });
@@ -23,14 +25,15 @@ server.route({
   config: { cors: true }, // For the test page to make CORS calls
   handler: (request, reply) => {
     
+    const response = reply.response().hold();
     const { store, key } = request.query;
+    
     if (!store || !key) {
       response.statusCode = 400; // Bad request (?)
       return response.send();
     }
     
     log('KVS Get', key);
-    const response = reply.response().hold();
     
     mongoClient.get({ segment: store, id: key }, (err, cached) => {
       if (err) {
@@ -54,16 +57,17 @@ server.route({
   config: { cors: true }, // For the test page to make CORS calls
   handler: (request, reply) => {
     
+    const response = reply.response().hold();
     const { key, value, store, ttl } = request.payload;
+    
     if (!store || !key || typeof value === 'undefined') {
       response.statusCode = 400; // Bad request (?)
       return response.send();
     }
     
     log('KVS Set', key, value);
-    const response = reply.response().hold();
     
-    mongoClient.set({ id: key, segment: store }, value, ttl || 1000 * 60, err => {
+    mongoClient.set({ id: key, segment: store }, value, ttl || defaulTtl, err => {
       if (err) {
         response.statusCode = 500;
         response.send();
@@ -78,7 +82,10 @@ server.route({
 
 server.start(err => {
   if (err) throw err;
-  mongoClient.start(() => {
+  
+  mongoClient.start(err => {
+    if (err) throw err;
+    
     log('.:. KVS server listening on port', port);
   });
 });

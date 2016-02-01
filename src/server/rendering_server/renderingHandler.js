@@ -7,6 +7,7 @@ import config from '../../config';
 import routes from '../../shared/routes';
 import createApp from '../../shared/createApp';
 import logg, { logError } from '../../shared/utils/logger';
+import { createSession } from '../utils/authUtils';
 
 const log = (...x) => logg('RND', ...x);
 const html = fs.readFileSync('./src/server/public/index.html', 'utf8')
@@ -18,6 +19,7 @@ export default function handleRendering(request, reply) {
   const response = reply.response().hold();
   const handle500 = (msg, err) => {
     logError(msg, err);
+    log('responding 500...');
     response.statusCode = 500;
     response.send();
   };
@@ -25,12 +27,24 @@ export default function handleRendering(request, reply) {
   // const params = method === 'post' || method === 'put' ? request.payload : request.query;
   // log('RND', 'Get', request.path, request.info.remoteAddress);
   // log('RND', 'state', request.state.token);
-  log('RND', 'Auth:', request.auth.isAuthenticated);
+  
+  let userId; // The authenticated user id
+  const initialState = {};
+  
+  if (request.auth.isAuthenticated) {
+    // Session renewal
+    userId = request.auth.credentials.id;
+    log('Auth:', userId);
+    const token = createSession(userId);
+    response.state("token", token);
+    initialState.session = { userId, token };
+  }
   
   
   match({ routes, location: request.url.path }, (err, redirectLocation, renderProps) => {
     if (err) {
       handle500('Route matching', err);
+      
     } else if (redirectLocation) {
       const url = redirectLocation.pathname + redirectLocation.search;
       log('Redirecting to', url);
@@ -40,12 +54,11 @@ export default function handleRendering(request, reply) {
       // You can also check renderProps.components or renderProps.routes for
       // your "not found" component or route respectively, and send a 404 as
       // below, if you're using a catch-all route.
-      // response.status(200).send(renderToString(<RouterContext {...renderProps} />))
-      const initialState = {};
+      
       const { store, userInterface } = createApp(initialState, renderProps);
       
       log('Entering Phidippides');
-      phidippides(renderProps, store.dispatch).then(() => {
+      phidippides(store, renderProps, userId).then(() => {
         log('Exiting Phidippides');
         
         let mountMeImFamous;
@@ -53,8 +66,9 @@ export default function handleRendering(request, reply) {
           mountMeImFamous = renderToString(userInterface);
         }
         catch(err) {
-          logError('renderToString', err);
+          handle500('renderToString', err);
         }
+        
         const serverState = store.getState();
         
         // serverState trimming to save brandwith
@@ -66,10 +80,9 @@ export default function handleRendering(request, reply) {
         response.source = html.replace('<body>', `<body><div id="mountNode">${mountMeImFamous}</div>` +
           `<script>window.STATE_FROM_SERVER=${JSON.stringify(serverState)}</script>`);
         response.send(); // Bon voyage
+        log('Response sent');
         
       }).catch(err => handle500('Phidippides', err));
     }
   });
-  
-  
 }

@@ -8,7 +8,7 @@ import definitions from '../../shared/models/definitions';
 const noDisclosure = { fields: { createdAt: 0, updatedAt: 0, creationIp: 0, passwordHash: 0 } };
 const noDisclosureLogin = { fields: { createdAt: 0, updatedAt: 0, creationIp: 0 } };
 
-/* Builders return a Promise that resolves data, they dont handle errors */
+/* Builders return a Promise that resolves data, they dont handle errors and assume their params are validated */
 let builders = {
   
   // Drops collections

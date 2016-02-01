@@ -12,17 +12,10 @@ export function createSession(userId) {
   const session = {
     id: userId,
     valid: true, // this will be set to false when the person logs out
-    exp: new Date().getTime() + config.jwt.cookieOptions.ttl
   };
   
   // create the session in kvs
-  xhr('put', config.services.kvs.url, { 
-    key: session.id, 
-    value: session,
-    store: config.jwt.kvsStore,
-    ttl: config.jwt.cookieOptions.ttl,
-  })
-  .catch(({ status, response, error }) => log('!!! API validate kvs error', status, response, error));
+  setSession(session).catch(err => logError('createSession.setSession', err));
   
   // sign the session as a JWT
   const token = JWT.sign(session, secretKey); // synchronous
@@ -31,39 +24,63 @@ export function createSession(userId) {
 }
 
 export function validateSession(decoded, request, callback) {
-  // console.log(" - - - - - - - DECODED token:");
-  // console.log(decoded);
   log('... validateSession');
+  // log(decoded);
+  const { id } = decoded;
+  if (!id) return callback(new Error('validateSession: no id found in decoded token'), false);
   
-  // do your checks to see if the session is valid
-  xhr('get', config.services.kvs.url, { store: config.jwt.kvsStore, key: decoded.id }).then(session => {
-    // console.log(' - - - - - - - KVS reply - - - - - - - ', session);
-    callback(null, session.valid, session);
-    
-  }, ({ status, response, error }) => {
+  getSession(id)
+  .then(session => callback(null, session.valid, session))
+  .catch(({ status, response, error }) => {
     log('!!! API validate kvs error', status, response, error);
     callback(error, false);
   });
 }
 
 export function addJWTAuthStrategyTo(server) {
+  
   server.auth.strategy('jwt', 'jwt', true, { 
     key: secretKey,
     verifyFunc: validateSession,
-    verifyOptions: { ignoreExpiration: false, algorithms: [ 'HS256' ] },
+    verifyOptions: { 
+      ignoreExpiration: true, // Only the KVS service knows when the session expires
+      algorithms: [ 'HS256' ] 
+    },
   });
+  
+  // Sets options for the auth cookie
+  server.state('token', config.jwt.cookieOptions);
 }
 
+// This is to be used only by the websocket server, which does not have a hapi auth strategy
+// It basically does what hapi-auth-jwt2 does but much more carelessly
+// It is still not safe enough, only a http-only cookie could safen it (I think)
 export function verifyToken(token) {
   
   return new Promise((resolve, reject) => {
-    JWT.verify(token, secretKey, (err, decoded) => {
+    JWT.verify(token, secretKey, (err, decoded) => { // Does not take into account params like 'algorithms'
       if (err) return reject(err);
       else if (!decoded) return reject('malformed token');
-      else if (!decoded.valid) return reject('invalid token');
-      else if (decoded.exp < new Date().getTime()) return reject('expired token');
+      else if (!decoded.id) return reject('invalid token');
       
-      resolve(decoded.id);
+      getSession(decoded.id)
+      .then(session => session.valid ? resolve(session) : reject('invalid session'))
+      .catch(reject);
     });
   });
+}
+
+export function getSession(id) {
+  log('... getSession');
+  return xhr('get', config.services.kvs.url, { store: config.jwt.kvsStore, key: id }, false, false);
+}
+
+export function setSession(session) {
+  log('... setSession');
+  return xhr('put', config.services.kvs.url, { 
+    store: config.jwt.kvsStore, 
+    key: session.id, 
+    value: session, 
+    ttl: config.jwt.cookieOptions.ttl
+  }, false, false);
 }

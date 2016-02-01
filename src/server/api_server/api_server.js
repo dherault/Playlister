@@ -7,7 +7,7 @@ import config from '../../config';
 import xhr from '../../shared/utils/xhr';
 import log, { logError, logRequest } from '../../shared/utils/logger';
 import actionCreators from '../../shared/state/actionCreators';
-import { addJWTAuthStrategyTo, createSession } from '../utils/authUtils';
+import { addJWTAuthStrategyTo, createSession, setSession } from '../utils/authUtils';
 import connectToWebsocketService from '../utils/connectToWebsocketService';
 import queryDatabase, { initMiddleware } from '../database/databaseMiddleware';
 import { connect, createCollections, dropDatabase } from '../database/databaseUtils';
@@ -32,9 +32,6 @@ server.register(hapiAuthJWT, err => {
   
   // Authentication strategy
   addJWTAuthStrategyTo(server);
-  
-  // Sets options for the auth cookie
-  server.state('token', config.jwt.cookieOptions);
   
   // Creates websocket service connection to notice user
   const socket = connectToWebsocketService('API dev server');
@@ -101,12 +98,7 @@ server.register(hapiAuthJWT, err => {
     logout: (result, params, request) => {
       const session = Object.assign({}, request.auth.credentials);
       session.valid = false;
-      return xhr('put', config.services.kvs.url, { 
-        key: session.id, 
-        value: session,
-        store: config.jwt.kvsStore,
-        ttl: config.jwt.cookieOptions.ttl,
-      }).then(() => true);
+      return setSession(session).then(() => true);
     }
   };
   const resolve = x => Promise.resolve(x);
@@ -134,24 +126,24 @@ server.register(hapiAuthJWT, err => {
           const params = method === 'post' || method === 'put' ? request.payload : request.query;
           
           log('API', method, path, params);
-          log('API', 'state', request.state);
+          if (request.auth.isAuthenticated) log('API', 'Auth:', request.auth.credentials.id);
           
           before(params, request).then(modifiedParams => 
             queryDatabase(intention, modifiedParams).then(result => 
               after(result, modifiedParams, request, response).then(modifiedResult => {
-                  
-                  if (modifiedResult.token) {
-                    response.header("Authorization", modifiedResult.token)
-                      .state("token", modifiedResult.token);
-                  } else if (auth) {
-                    response.header("Authorization", request.headers.authorization)
-                      .state("token", request.headers.authorization);
-                  }
-                  response.source = modifiedResult;
-                  response.send();
-                },
+                console.log(1)
+                // Give session
+                if (modifiedResult.token) response.state("token", modifiedResult.token);
+                // Renew session
+                else if (request.auth.isAuthenticated && intention !== 'logout') response.state("token", createSession(request.auth.credentials.id));
+                console.log(1)
                 
-                handleError.bind(null, 'afterQuery')
+                response.source = modifiedResult;
+                response.send();
+                log('API', 'Response sent');
+              },
+              
+              handleError.bind(null, 'afterQuery')
               ),
               err => handleError('queryDatabase', createReason(500, '', err))
             ),

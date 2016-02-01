@@ -4,10 +4,12 @@ import config from '../config';
 import log from '../shared/utils/logger';
 import ac from '../shared/state/actionCreators';
 
-export default store => {
+export default function registerWebsocket(store) {
   
-  const socket = io(config.services.websocket.url + 'users');
   const { dispatch, getState, subscribe } = store;
+  const { token } = getState().session;
+  const options = token ? { query: 'token='+token } : undefined;
+  const socket = io(config.services.websocket.url + 'users', options);
   
   // Websocket-related side effects
   const sideEffects = {
@@ -29,4 +31,4 @@ export default store => {
   }
   
   return sideEffects;
-};
+}

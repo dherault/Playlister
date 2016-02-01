@@ -3,6 +3,7 @@ import definitions from '../models/definitions';
 import xhr from '../utils/xhr';
 import log from '../utils/logger';
 import { capitalizeFirstChar } from '../utils/textUtils';
+import isServer from '../utils/isServer';
 
 const cac = createActionCreator;
 
@@ -34,7 +35,7 @@ const actionCreators = {
     intention:  'readAll',
     method:     'get',
     path:       'readAll',
-    auth:       false, // !
+    auth:       true,
   }),
 };
 
@@ -52,16 +53,17 @@ function createActionCreator(shape) {
   // Action type is created from intention
   const types = ['REQUEST', 'SUCCESS', 'FAILURE'].map(t => `${t}_${intention.replace(/[A-Z]/g, '_$&')}`.toUpperCase());
   
-  const actionCreator = params => {
+  // Optionnaly, a token can be passed to the actionCreator to ensure remote auth via the Authorization header
+  const actionCreator = (params, token) => {
     
     log('.A.', intention, params ? JSON.stringify(params) : '');
     log(`+++ --> ${method} ${path}`, params);
     
-    const promise = xhr(method, config.services.api.url + path, params, true);
+    const promise = xhr(method, config.services.api.url + path, params, token || true, false);
     
     // New promise chain because promiseMiddleware is the end catcher
     promise.then(result => {
-      log(`+++ <-- ${intention}`, result);
+      if (!isServer) log(`+++ <-- ${intention}`, result);
       return result;
     }, ({ status, response, error }) => {
       log('!!! action.promise rejection', intention, params);

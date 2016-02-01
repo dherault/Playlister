@@ -2,7 +2,7 @@ import http from 'http';
 import socketIO from 'socket.io';
 
 import config from '../../config';
-import logg from '../../shared/utils/logger';
+import logg, { logError } from '../../shared/utils/logger';
 import { verifyToken } from '../utils/authUtils';
 
 /*
@@ -25,10 +25,10 @@ const servicesNamespace = io.of(serviceSecretNamespace);
 const getNamespaceSize = x => Object.keys(x.connected).length;
 const getUsersRatio = () => authUsers.size + '/' + getNamespaceSize(usersNamespace);
 const getServicesRatio = () => authServices.size + '/' + getNamespaceSize(servicesNamespace);
-const gur = getUsersRatio;
+const gur = getUsersRatio; // shorcuts
 const gsr = getServicesRatio;
 
-// Handlers
+/* Handlers */
 const handlers = {
   
   users: {
@@ -44,11 +44,12 @@ const handlers = {
     },
     
     auth: (socket, token) => {
-      verifyToken(token).then(userId => {
-        log('User auth success:', userId);
-        authUsers.set(socket.id, userId);
-        authUserSockets.set(userId, socket);
-      }, err => console.error('websocket users.auth verifyToken', err));
+      verifyToken(token).then(({ id }) => {
+        log('User auth success:', id);
+        authUsers.set(socket.id, id);
+        authUserSockets.set(id, socket);
+        socket.emit('message', 'Auth success');
+      }, err => logError('websocket users.auth verifyToken', err));
     },
     
   },
@@ -62,6 +63,7 @@ const handlers = {
       if (serviceName) authServices.delete(socketId);
     },
     
+    // Can do better
     auth: (socket, { key, name }) => {
       if (key === servicesSecretKey) {
         authServices.set(socket.id, name);
@@ -83,12 +85,31 @@ const handlers = {
   },
 };
 
-// Wiring
+/* Wiring */
+
+// This is a socket.io middleware to filter incomming connections
+// Unauthenticated users are welcome too, so the callback is always true;
+usersNamespace.use((socket, next) => {
+  const { token } = socket.handshake.query;
+  
+  if (token) verifyToken(token)
+    .then(({ id }) => {
+      authUsers.set(socket.id, id);
+      authUserSockets.set(id, socket);
+      next(null, true);
+    })
+    .catch(err => next(err, true)); // Lets give the error to the client for hacking-friendly purposes
+  
+  else next(null, true);
+});
+
 usersNamespace.on('connect', socket => {
   const { id } = socket;
+  const isAuth = authUsers.has(id);
   const h = handlers.users;
-  log('User connected:', id, gur());
-  socket.emit('message', 'Hello from server');
+  
+  log('User connected:', isAuth, id, gur());
+  socket.emit('message', 'Hello from websocket server. Auth: ' + isAuth);
   
   for (let event in h) {
     socket.on(event, data => h[event](socket, data));

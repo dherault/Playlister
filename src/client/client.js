@@ -1,30 +1,29 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import injectTapEventPlugin from 'react-tap-event-plugin';
 
 import createApp from '../shared/createApp';
 import registerSideEffects from './registerSideEffects';
 import registerShortcuts from './registerShortcuts';
 import registerWebsocket from './registerWebsocket';
 
-console.log('Hi!');
+console.log('Hello client!');
 
-// Needed for onTouchTap
-// Can go away when react 1.0 release
-// Check this repo:
-// https://github.com/zilverline/react-tap-event-plugin
-injectTapEventPlugin();
-
+// App creation
 const { store, userInterface } = createApp(window.STATE_FROM_SERVER || {});
 
+// User interface rendering
 ReactDOM.render(
   userInterface,
   document.getElementById('mountNode'),
   () => console.log('App rendered.')
 );
 
-const websocketSideEffects = registerWebsocket(store);
-registerSideEffects(store, websocketSideEffects);
-registerShortcuts(store);
+// Let's give the store instance to whatever needs it
+const websocketSideEffects = registerWebsocket(store); // Websocket-related logic init
+registerSideEffects(store, websocketSideEffects); // Side effects init
+registerShortcuts(store); // Keyboard shortcuts init
+
+// Some side effects want to know when the app is green
+// store.dispatch({ type: 'APP_BOOT' });
 
 require('./stylesheets/app.css');

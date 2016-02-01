@@ -2,9 +2,9 @@ import isServer from './isServer';
 import log from './logger';
 
 // A promise wrapper around XMLHttpRequest 
-export default function xhr(method, path, params, withCredentials=false) {
+export default function xhr(method, path, params, token, verbose=true) {
   
-  log('... xhr', method, path, params || '');
+  if (verbose) log('... xhr', method, path, params || '');
   
   if (!method || !path) throw new Error('makeHttpRequest: method or path arg missing');
   
@@ -12,9 +12,7 @@ export default function xhr(method, path, params, withCredentials=false) {
     
     // Universal xhr is ugly for now
     const Xhr = isServer ? require('xhr2') : XMLHttpRequest;
-    
     const xhr = new Xhr();
-    if (withCredentials) xhr.withCredentials = true;
     const m = method.toLowerCase();
     const isPost = m === 'post' || m === 'put';
     
@@ -38,6 +36,12 @@ export default function xhr(method, path, params, withCredentials=false) {
     });
     
     xhr.open(m, pathWithQuery);
+    
+    // Authentication matters
+    if (token) {
+      if (typeof token === 'boolean') xhr.withCredentials = token;
+      else if (typeof token === 'string') xhr.setRequestHeader("Authorization", token);
+    }
     
     xhr.onload = () => {
       const { status, response } = xhr;
