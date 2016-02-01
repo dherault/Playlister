@@ -1,15 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router';
 import { connect } from 'react-redux';
-import Paper from 'material-ui/lib/paper';
-import TextField from 'material-ui/lib/text-field';
-import RaisedButton from 'material-ui/lib/raised-button';
-import CircularProgress from 'material-ui/lib/circular-progress';
-
-// import FontIcon from 'material-ui/lib/font-icon';
-// import IconButton from 'material-ui/lib/icon-button';
-// import Colors from 'material-ui/lib/styles/colors';
-// import BookmarkIcon from 'material-ui/lib/svg-icons/action/bookmark';
 
 import ac from '../state/actionCreators';
 
@@ -19,13 +10,13 @@ class LandingPage extends React.Component {
     super();
     this.state = { 
       step: 'start' ,
-      email: '',
-      password: '',
+      email: 'admin',
+      password: 'password',
     };
   }
   
   componentWillReceiveProps(nextprops) {
-    if (nextprops.lastAction.type === 'FAILURE_LOGIN' && this.state.step !== 'password') this.setState({ step: 'password' });
+    if (nextprops.lastAction.type === 'FAILURE_LOGIN' && this.state.step !== 'email') this.setState({ step: 'email' });
   }
   
   handleMailClick() {
@@ -47,13 +38,7 @@ class LandingPage extends React.Component {
     console.log('submit');
     e.preventDefault();
     
-    if (this.state.step === 'email') {
-      this.setState({ step: 'password' }, () => {
-        this.refs.passwordInput.focus();
-      });
-    }
-    
-    else if (this.state.step === 'password' && this.state.password.length >= 8) {
+    if (this.state.step === 'email' && this.state.password.length >= 8) {
       this.setState({ step: 'submit' });
       const { email, password } = this.state;
       this.props.dispatch(ac.login({ email, password }));
@@ -66,163 +51,61 @@ class LandingPage extends React.Component {
       width: '90%',
       margin: 'auto',
       minHeight: '100%',
-      // position: 'relative',
+      fontSize: '1.3rem',
     };
-    
-    const footerStyle = {
-    	width: '100%',
-    	height: 30,
-    	position: 'absolute',
-    	bottom: 0,
-    	left: 0,
-    // 	paddingTop: 5,
-    // 	paddingBottom: 5,
-      textAlign: 'center',
-    };
-    
-    const paperStyle = {
-      minHeight: 200,
-      width: '100%',
-      marginTop: '27%',
-      // margin: '0 20px 0 20px',
-      textAlign: 'center',
-      display: 'inline-block',
-    };
-    
-    const headStyle = {
-      fontSize: '4.236rem',
-      margin: '40px 0 40px 0',
-    };
-    const leadStyle = {
-      fontWeight: 500,
-      margin: '40px 120px 40px 120px',
-      fontSize: '2.618rem',
-    };
-    
     const signStyle = {
       margin: '40px 0 40px 0',
     };
-    const signCaptionStyle = {
-      fontSize: '1.618rem',
-      marginRight: 20,
-      display: this.state.step === 'start' || this.state.step === 'email' ? 'inline-block' : 'none',
-      overflow: 'hidden',
-    };
-    
     const buttonsStyle = {
       display: this.state.step === 'start' ? 'inline-block' : 'none',
     };
     const buttonStyle = {
       marginRight: 20,
     };
-    const fbStyle = {
-      background: '#3B5998', // bug ?
-    };
-    
-    const emailStyle = {
-      display: this.state.step === 'email' || this.state.step === 'password' ? 'inline-block' : 'none',
-    };
-    
-    const passwordStyle = {
-      display: this.state.step === 'password' ? 'inline-block' : 'none',
-      margin: '0 20px 0 20px'
-    };
-    
-    const emailInputStyle = {
-      fontSize: '1.618rem',
-    };
-    
-    const passwordInputStyle = {
-      fontSize: '1.618rem',
-    };
-    
-    const submitButtonStyle = {
-      display: this.state.step === 'password' ? 'inline-block' : 'none',
-    };
-    
-    const spinnerStyle = {
-      display: this.state.step === 'submit' ? 'inline-block' : 'none',
-      marginBottom: 40,
+    const inputsStyle = {
+      display: this.state.step === 'email'? 'block' : 'none',
     };
     
     return <div style={wrapperStyle}>
       
-      <div className="section group">
-        <div className="col span_6_of_12">
-          <div className="box">
-            <Link to='/test'>Test page</Link>&nbsp;
-            <Link to='/@joe'>Joe page</Link>
-          </div>
-        </div>
-        <div className="col span_6_of_12">
-          <div className="box">
-          
-            <Paper style={paperStyle} zDepth={1}>
-            
-              <div style={headStyle}>
-                Playlister
-              </div>
-              <div style={leadStyle}>
-                Combine any media into a simple and elegant playlist
-              </div>
-              
-              <div style={signStyle}>
-                <span style={signCaptionStyle}> Sign in/up with  </span>
-                
-                <div style={buttonsStyle}>
-                  <RaisedButton style={buttonStyle} label="Mail" onClick={this.handleMailClick.bind(this)}/>
-                  <RaisedButton style={Object.assign({}, buttonStyle, fbStyle)} label="Facebook" />
-                  <RaisedButton style={buttonStyle} label="Google" />
-                </div>
-                
-                <div style={emailStyle}>
-                  <TextField 
-                    ref="mailInput"
-                    fullWidth={true} 
-                    hintText="abc@mail.com" 
-                    inputStyle={emailInputStyle} 
-                    value={this.state.email}
-                    onChange={this.handleEmailInputChange.bind(this)}
-                    onEnterKeyDown={this.handleFormSubmit.bind(this)}
-                  />
-                </div>
-                
-                <div style={passwordStyle}>
-                  <TextField 
-                    ref="passwordInput"
-                    type="password"
-                    fullWidth={true} 
-                    hintText="Min. 8 characters" 
-                    floatingLabelText="Enter password"
-                    inputStyle={passwordInputStyle} 
-                    value={this.state.password}
-                    onChange={this.handlePasswordInputChange.bind(this)}
-                    onEnterKeyDown={this.handleFormSubmit.bind(this)}
-                  />
-                </div>
-                
-                <RaisedButton 
-                  style={submitButtonStyle} 
-                  label="Enter" 
-                  disabled={this.state.password.length < 8}
-                />
-                
-              </div>
-              
-              <CircularProgress mode="indeterminate" style={spinnerStyle}/>
-              
-            </Paper>
-          </div>
-        </div>
-      </div>
-      
-      <div style={footerStyle}>
-          Copyright 2016 David Hérault -&nbsp;
+      <div>
+          <Link to='/test'>Test page</Link>  -&nbsp;
           <a href="https://github.com/dherault/Playlister" target="_blank">
             Github
           </a>
       </div>
       
+      <div style={signStyle}>
+        <div> Sign in/up with  </div>
+        
+        <div style={buttonsStyle}>
+          <button style={buttonStyle} onClick={this.handleMailClick.bind(this)}>Mail</button>
+          <button style={buttonStyle}>Facebook</button>
+          <button style={buttonStyle}>Google</button>
+        </div>
+        
+        <div style={inputsStyle}>
+          <input 
+            ref="mailInput"
+            type="text"
+            placeholder="abc@mail.com" 
+            value={this.state.email}
+            onChange={this.handleEmailInputChange.bind(this)}
+          />
+        
+          <input 
+            ref="passwordInput"
+            type="password"
+            placeholder="Min. 8 characters" 
+            value={this.state.password}
+            onChange={this.handlePasswordInputChange.bind(this)}
+            onEnterKeyDown={this.handleFormSubmit.bind(this)}
+          />
+        
+          <button disabled={this.state.password.length < 8} onClick={this.handleFormSubmit.bind(this)}>Enter</button>
+        </div>
+      </div>
+        
     </div>;
   }
 }

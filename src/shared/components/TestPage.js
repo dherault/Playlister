@@ -59,7 +59,6 @@ class TestPage extends React.Component {
   }
   
   // READ ONE
-  
   handleReadOneClick() {
     this.props.dispatch(ac['read' + cfc(this.state.model)]({ id: this.state.id }));
   }

@@ -48,7 +48,13 @@ export default function handleRendering(request, reply) {
       phidippides(renderProps, store.dispatch).then(() => {
         log('Exiting Phidippides');
         
-        const mountMeImFamous = renderToString(userInterface);
+        let mountMeImFamous;
+        try {
+          mountMeImFamous = renderToString(userInterface);
+        }
+        catch(err) {
+          logError('renderToString', err);
+        }
         const serverState = store.getState();
         
         // serverState trimming to save brandwith
