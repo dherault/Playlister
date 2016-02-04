@@ -131,12 +131,13 @@ server.register(hapiAuthJWT, err => {
           before(params, request).then(modifiedParams => 
             queryDatabase(intention, modifiedParams).then(result => 
               after(result, modifiedParams, request, response).then(modifiedResult => {
-                console.log(1)
+                
+                // Handle 404
+                if (modifiedResult === null) response.statusCode = 404;
                 // Give session
-                if (modifiedResult.token) response.state("token", modifiedResult.token);
+                else if (modifiedResult.token) response.state("token", modifiedResult.token);
                 // Renew session
                 else if (request.auth.isAuthenticated && intention !== 'logout') response.state("token", createSession(request.auth.credentials.id));
-                console.log(1)
                 
                 response.source = modifiedResult;
                 response.send();

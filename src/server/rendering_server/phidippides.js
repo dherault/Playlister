@@ -2,22 +2,28 @@ import logg from '../../shared/utils/logger';
 
 export default function phidippides(store, renderProps) {
   
-  if (!store) return Promise.reject("No 'store' arg given");
-  if (!renderProps) return Promise.resolve();
+  if (!store) return Promise.reject("Phidippides: missing 'store' arg");
+  if (!renderProps) return Promise.reject("Phidippides: missing 'renderProps' arg");
+  
   // console.log(renderProps)
+  // if (true) return Promise.reject('Oh no! This is a fake rejection for dev purposes');
+  // if (true) return Promise.reject(new Error('Oh no! This is a fake rejection error for dev purposes'));
   
   // Configuration
-  const VERBOSE     = true;             // Display logs or not
+  const VERBOSE     = false;            // Display logs or not
   const METHOD_NAME = 'runPhidippides'; // The static method name in React comps
-  const DEVELOPMENT = process.env.NODE_ENV !== 'production';
-  const MAX_CYCLES  = 15;
+  const MAX_CYCLES  = 15;               // Max cycle number before rejection
+  
+  // Internals
+  const NOT_FOUND = 'phidippides_not_found';
   
   const { dispatch, getState } = store;
   const { userId, token } = getState().session;
   
-  let cycleCount = 0;  // Prevents infinite loops (like: task1.dependencyId = task2; task2.dependencyId = taks1)
-  let failedTasks = []; // Uncleared tasks because dependencies are missing
+  let cycleCount        = 0;  // Prevents infinite loops (like: task1.dependencyId = task2; task2.dependencyId = taks1)
+  let failedTasks       = []; // Uncleared tasks because dependencies are missing
   let completedTasksIds = []; // Cleared tasks ids
+  let shouldReply404    = false;
   
   // Fetches the tasks within components
   const tasks = renderProps.components
@@ -49,18 +55,18 @@ export default function phidippides(store, renderProps) {
     if (cycleCount >= MAX_CYCLES) return Promise.reject('Infinite loop detected in phidippides');
     
     // So phidippides returns this promise
-    return Promise.all(tasks.map(task => clearOneTask(task))).then(() => {
+    return Promise.all(tasks.map(task => clearOneTask(task))).then(results => {
       log('\n');
       log('* clearTasks ended * ');
       log('Completed tasks:', completedTasksIds);
       log('Failed tasks:', failedTasks.map(task => task.id));
       log('\n');
       
-      // const tasks404 = tasks.filter(t => t.nullIs404 && completedTasks.hasOwnProperty(t.id) && completedTasks[t.id].notFound);
+      // If a task with the 'notFoundTriggers404' gets a 404 from the API, then clearOneTask resolves NOT_FOUND
+      if (results.some(r => r === NOT_FOUND)) shouldReply404 = true;
       
       // If no task is left then it's over
-      // if (!failedTasks.length || tasks404.length) return;
-      if (!failedTasks.length) return;
+      if (!failedTasks.length) return shouldReply404;
       
       // Otherwise the program will try to process the uncleared tasks
       // Hoping that dependencies have been cleared
@@ -72,46 +78,60 @@ export default function phidippides(store, renderProps) {
   
   function clearOneTask(task) {
     
-    const { id, actionCreator, getParams, dependencyId } = task;
-    
-    log('clearOneTask', id);
-    
-    // If there is a uncleared dependency
-    if (dependencyId && completedTasksIds.indexOf(dependencyId) === -1) {
+    // A rejection here makes clearTasks reject and therefore phidippides reject, thus 500
+    return new Promise((resolve, reject) => {
       
-      failedTasks.push(task);
-      log(`clearOneTask ${id} failed: missing dependency ${dependencyId}`);
-      return Promise.resolve(); // This is not a rejection: we are just waiting for the dependency
+      const { id, actionCreator, getParams, dependencyId, notFoundTriggers404 } = task;
       
-    } else {
+      log('clearOneTask', id);
       
-      log(`_ calling actionCreator for task ${id}`);
-      const action = actionCreator(getParams(getState()), token);
-      const { promise } = action;
-      
-      dispatch(action);
-      
-      // No promise, no problem, but really this is a fetch utility so there is always a promise
-      if (!promise) {
-        completedTasksIds.push(id);
-        log(`clearOneTask ${id} complete`);
-        return Promise.resolve();
-      } 
-      
-      // A rejection here makes clearTasks reject and therefore phidippides reject, thus 500
-      else return promise.then(data => {
-        log(` _ Dispatch for ${id} resolved`);
-        if (data) log(JSON.stringify(data).substr(0,150));
-        log(`clearOneTask ${id} complete`);
+      // If there is a uncleared dependency
+      if (dependencyId && completedTasksIds.indexOf(dependencyId) === -1) {
         
-        completedTasksIds.push(id);
-      });
-    }
+        failedTasks.push(task);
+        log(`clearOneTask ${id} failed: missing dependency ${dependencyId}`);
+        return resolve(); // This is not a rejection: we are just waiting for the dependency
+        
+      } else {
+        
+        log(`_ calling actionCreator for task ${id}`);
+        const action = actionCreator(getParams(getState()), token);
+        const { promise } = action;
+        
+        dispatch(action);
+        
+        // No promise, no problem, but really this is a fetch utility so there is always a promise
+        if (!promise) {
+          completedTasksIds.push(id);
+          log(`clearOneTask ${id} complete`);
+          return Promise.resolve();
+        } 
+        
+        else promise.then(data => {
+          log(` _ Dispatch for ${id} resolved`);
+          if (data) log(JSON.stringify(data).substr(0,150));
+          log(`clearOneTask ${id} complete`);
+          
+          completedTasksIds.push(id);
+          resolve();
+          
+        }, ({ response, status, error }) => {
+          if (error) return reject(error); // 500
+          if (status === 500) return reject('API replied 500'); // 500
+          else if (status === 404 && notFoundTriggers404) return resolve(NOT_FOUND);
+          else {
+            // This is probably stupid
+            completedTasksIds.push(id);
+            resolve();
+          }
+        });
+      }
+    });
   }
   
   // Checks the shape of a task
   function checkFormat(task) {
-    if (DEVELOPMENT) {
+    if (process.env.NODE_ENV !== 'production') {
       let whatIsWrong = '';
       
       if (task.hasOwnProperty('id')) {

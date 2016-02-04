@@ -8,7 +8,7 @@ class App extends React.Component {
     if (sessionUserId) return [{
       id: 'sessionUser',
       actionCreator: ac.readUser,
-      getParams: state => ({ id: sessionUserId })
+      getParams: () => ({ id: sessionUserId })
     }];
   }
   

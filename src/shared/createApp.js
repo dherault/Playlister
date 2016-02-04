@@ -2,7 +2,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { syncHistory, routeReducer } from 'react-router-redux';
 import { Router, RouterContext, browserHistory } from 'react-router';
-import { createStore, combineReducers, applyMiddleware } from 'redux';
+import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
 // RouterContext gets imported to client for now;
 
 import routes from './routes';
@@ -12,6 +12,7 @@ import reducers from './state/reducers';
 import promiseMiddleware from './state/promiseMiddleware';
 // import sideEffects from '../../client/sideEffects';
 
+// This is not universal enough !!! To be refactored
 export default function createApp(initialState, renderProps={}) {
   
   log('... Initializing UI and store');
@@ -26,7 +27,10 @@ export default function createApp(initialState, renderProps={}) {
   } else {
     const history = browserHistory;
     const routerMiddleware = syncHistory(history);
-    enhance = applyMiddleware(routerMiddleware, promiseMiddleware);
+    enhance = compose(
+      applyMiddleware(routerMiddleware, promiseMiddleware),
+      window.devToolsExtension ? window.devToolsExtension() : f => f
+    );
     reducer = combineReducers(Object.assign({}, reducers, { routing: routeReducer }));
     router = <Router history={history} routes={routes} />;
     

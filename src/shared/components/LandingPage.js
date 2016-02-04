@@ -15,10 +15,6 @@ class LandingPage extends React.Component {
     };
   }
   
-  componentWillReceiveProps(nextprops) {
-    if (nextprops.lastAction.type === 'FAILURE_LOGIN' && this.state.step !== 'email') this.setState({ step: 'email' });
-  }
-  
   handleMailClick() {
     this.setState({ step: 'email' }, () => {
       this.refs.mailInput.focus();
@@ -39,7 +35,6 @@ class LandingPage extends React.Component {
     e.preventDefault();
     
     if (this.state.step === 'email' && this.state.password.length >= 8) {
-      this.setState({ step: 'submit' });
       const { email, password } = this.state;
       this.props.dispatch(ac.login({ email, password }));
     }

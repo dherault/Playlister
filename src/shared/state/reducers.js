@@ -12,6 +12,9 @@ const reducers = {
       case 'SUCCESS_LOGIN':
         return Object.assign({}, state, { [payload._id]: Object.assign({}, payload) });
       
+      case 'SUCCESS_READ_USER_BY_USERNAME':
+        return Object.assign({}, state, { [payload._id]: Object.assign({}, payload) });
+        
       default:
         return state;
     }

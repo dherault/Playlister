@@ -11,14 +11,16 @@ const noDisclosureLogin = { fields: { createdAt: 0, updatedAt: 0, creationIp: 0 
 /* Builders return a Promise that resolves data, they dont handle errors and assume their params are validated */
 let builders = {
   
-  // Drops collections
-  drop: db => db.dropDatabase(),
+  login: (db, { email }) => db.collection('users').findOne({ email }, noDisclosureLogin),
+  logout: () => Promise.resolve(),
   
   // Reads all documents for a given collection
   readAll: (db, params) => db.collection(params.collection).find({}, noDisclosure).toArray().then(normalize),
   
-  login: (db, { email }) => db.collection('users').findOne({ email }, noDisclosureLogin),
-  logout: () => Promise.resolve(),
+  readUserByUsername: (db, { username }) => db.collection('users').findOne({ username }, noDisclosure),
+  
+  // Drops collections
+  drop: db => db.dropDatabase(),
 };
 
 // Defaults can be overwritten

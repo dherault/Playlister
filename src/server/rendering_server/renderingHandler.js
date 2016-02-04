@@ -17,16 +17,14 @@ const html = fs.readFileSync('./src/server/public/index.html', 'utf8')
 export default function handleRendering(request, reply) {
   
   const response = reply.response().hold();
-  const handle500 = (msg, err) => {
-    logError(msg, err);
-    log('responding 500...');
-    response.statusCode = 500;
-    response.send();
-  };
   
-  // const params = method === 'post' || method === 'put' ? request.payload : request.query;
-  // log('RND', 'Get', request.path, request.info.remoteAddress);
-  // log('RND', 'state', request.state.token);
+  const handle500 = (msg, err) => {
+    response.statusCode = 500;
+    response.source = 'Internal server error.';
+    response.send();
+    logError(msg, err);
+    log('Replied 500');
+  };
   
   let userId; // The authenticated user id
   const initialState = {};
@@ -43,7 +41,7 @@ export default function handleRendering(request, reply) {
   
   match({ routes, location: request.url.path }, (err, redirectLocation, renderProps) => {
     if (err) {
-      handle500('Route matching', err);
+      return handle500('Route matching', err);
       
     } else if (redirectLocation) {
       const url = redirectLocation.pathname + redirectLocation.search;
@@ -51,38 +49,40 @@ export default function handleRendering(request, reply) {
       return response.redirect(url);
       
     } else if (renderProps) {
-      // You can also check renderProps.components or renderProps.routes for
-      // your "not found" component or route respectively, and send a 404 as
-      // below, if you're using a catch-all route.
+      
       
       const { store, userInterface } = createApp(initialState, renderProps);
       
       log('Entering Phidippides');
-      phidippides(store, renderProps, userId).then(() => {
+      phidippides(store, renderProps, userId).then(shouldReply404 => {
         log('Exiting Phidippides');
         
-        let mountMeImFamous;
+        // Let's add the 404 code if unmatched or Phidippides said so
+        if (renderProps.routes.some(route => route.component.name === 'NotFound') || shouldReply404) response.statusCode = 404;
+        // Rendering can throw, let's try it
         try {
-          mountMeImFamous = renderToString(userInterface);
+          var mountMeImFamous = renderToString(userInterface);
         }
-        catch(err) {
-          handle500('renderToString', err);
+        catch (err) {
+          return handle500('renderToString', err);
         }
         
+        // Phidippides took charge of populating the state
         const serverState = store.getState();
         
         // serverState trimming to save brandwith
-        ['records'].forEach(key => delete serverState[key]);
-        Object.keys(serverState).forEach(key => {
-          if (!Object.keys(serverState[key]).length) delete serverState[key];
-        });
+        ['records'].forEach(key => delete serverState[key]); // Goodbye useless keys
+        // for (let key in serverState) {
+        //   if (!Object.keys(serverState[key]).length) delete serverState[key]; // Goodbye empty keys
+        // }
+        
         
         response.source = html.replace('<body>', `<body><div id="mountNode">${mountMeImFamous}</div>` +
           `<script>window.STATE_FROM_SERVER=${JSON.stringify(serverState)}</script>`);
         response.send(); // Bon voyage
         log('Response sent');
         
-      }).catch(err => handle500('Phidippides', err));
+      }, err => handle500('Phidippides', err)); // Don't 'catch', double catch means troubles
     }
   });
 }

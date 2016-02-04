@@ -13,7 +13,7 @@ let config = {
     secretKey: 'secret',
     kvsStore: 'sessions',
     cookieOptions: {
-      ttl: 1000 * 60 * 1,
+      ttl: 1000 * 60 * 2,
       encoding: 'none',    // we already used JWT to encode
       // isSecure: false,      // warm & fuzzy feelings
       // isHttpOnly: false,    // prevent client alteration

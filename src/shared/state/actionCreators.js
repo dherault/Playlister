@@ -11,7 +11,7 @@ const cac = createActionCreator;
 const actionCreators = {
   
   login: cac({
-    intention:  'login',
+    intention:  'login', // The ac's name, its intention and its path are redundant, to be fixed ?
     method:     'post',
     path:       'login',
     auth:       false,
@@ -24,22 +24,29 @@ const actionCreators = {
     auth:       true,
   }),
   
-  drop: cac({
-    intention:  'drop',
-    method:     'delete',
-    path:       'drop',
-    auth:       true,
-  }),
-  
   readAll: cac({
     intention:  'readAll',
     method:     'get',
     path:       'readAll',
     auth:       true,
   }),
+  
+  readUserByUsername: cac({
+    intention:  'readUserByUsername',
+    method:     'get',
+    path:       'readUserByUsername',
+    auth:       false,
+  }),
+  
+  drop: cac({
+    intention:  'drop',
+    method:     'delete',
+    path:       'drop',
+    auth:       true,
+  }),
 };
 
-export default Object.assign({}, createDefaultCRUDActions(), actionCreators);
+export default Object.assign({}, createDefaultCRUDActionCreators(), actionCreators);
 
 // (string)            intention   The queryDatabase handle, also used to create actionTypes
 // (string)            method      HTTP method
@@ -66,8 +73,8 @@ function createActionCreator(shape) {
       if (!isServer) log(`+++ <-- ${intention}`, result);
       return result;
     }, ({ status, response, error }) => {
-      log('!!! action.promise rejection', intention, params);
-      log('!!! response', status, response);
+      log('!!! Action', intention, params);
+      log('!!! Response', status, response);
       if (error) log('!!!', error);
     }); 
     
@@ -82,7 +89,7 @@ function createActionCreator(shape) {
 }
 
 
-function createDefaultCRUDActions() {
+function createDefaultCRUDActionCreators() {
   const ac = {};
   
   for (let model in definitions) {
