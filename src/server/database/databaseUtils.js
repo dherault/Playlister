@@ -1,55 +1,57 @@
-import { MongoClient } from 'mongodb';
+import r from 'rethinkdb';
 
-// import config from '../../config';
+import config from '../../config';
 import log from '../../shared/utils/logger';
 import definitions from '../../shared/models/definitions';
 
+const { db } = config.rethinkdb;
+
 // Only promisers (fn that returns a promise)
 
-export function connect(url) {
+export function openConnection(options={}) {
   
-  return new MongoClient.connect(url).then(db => {
-    log("... Connected correctly to mongo");
-    return db;
+  return r.connect(options).then(connection => {
+    log('... Connected correctly to RethinkDB');
+    return connection;
   });
 }
 
-export function disconnect(db) {
+export function closeConnection(connection) {
   
-  return db.close().then(() => {
-    log("... Disconnected correctly from mongo");
-    return db;
+  return connection.close().then(() => {
+    log('... Disconnected correctly from RethinkDB');
+    return connection;
   });
 }
 
-// Will create the collection unless already existant
-export function createCollections(db) {
+export function createDatabase(connection) {
+  log('... Creating database', db);
   
-  let promises = [];
-  for (let model in definitions) {
-    const { pluralName, uniqueIndexs } = definitions[model];
-    
-    promises.push(new Promise((resolve, reject) => {
-      log('... Creating collection', pluralName);
+  return r.dbList().run(connection)
+  .then(result => result.includes(db) ? connection : r.dbCreate(db).run(connection).then(() => connection));
+}
+
+// Will create the tables (unless already existant?)
+export function createTables(connection) {
+  
+  return r.db(db).tableList().run(connection).then(tableList => {
+    let promises = [];
+    for (let model in definitions) {
+      const { pluralName } = definitions[model];
       
-      const params = { autoIndexId: false }; // till someone tells me why i should keep '_id'
-      db.createCollection(pluralName, params, (err, col) => {
-        if (err) return reject(err);
-        
-        // Custom indexs
-        // Assumes uniqueIndexs is array. if (Array.isArray(uniqueIndexs)) 
-        if (uniqueIndexs) uniqueIndexs.forEach(i => col.ensureIndex({ [i]: 1 }, { unique: true }));
-        
-        resolve();
-      });
-    }));
-  }
-  
-  return Promise.all(promises).then(() => db);
+      if (!tableList.includes(pluralName)) {
+        log('... Creating table', pluralName);
+        promises.push(r.tableCreate(pluralName).run(connection));
+      }
+    }
+    
+    return Promise.all(promises).then(() => connection);
+  });
 }
 
-export function dropDatabase(db) {
-  log('... Dropping db');
+
+export function dropDatabase(connection) {
+  log('... Dropping database', db);
   
-  return db.dropDatabase().then(() => db);
+  return r.dbDrop(db).run(connection).then(() => connection);
 }

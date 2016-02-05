@@ -5,7 +5,8 @@ import { Link } from 'react-router';
 import config from '../../config';
 import ac from '../state/actionCreators';
 import definitions from '../models/definitions';
-import xhr from '../utils/xhr';
+// import xhr from '../utils/xhr';
+import customFetch from '../utils/customFetch';
 import { capitalizeFirstChar } from '../utils/textUtils';
 import { randomInteger, randomString, randomEmail } from '../utils/randomUtils';
 
@@ -41,10 +42,6 @@ class TestPage extends React.Component {
     this.setState({ recordsOffset: this.props.records.length });
   }
   
-  handleDrop() {
-    this.props.dispatch(ac.drop());
-  }
-  
   handleModelSelection(e) {
     this.setState({ model: e.target.value });
   }
@@ -55,7 +52,7 @@ class TestPage extends React.Component {
   
   // READ ALL
   handleReadAllClick() {
-    this.props.dispatch(ac.readAll({ collection: definitions[this.state.model].pluralName }));
+    this.props.dispatch(ac.readAll({ table: definitions[this.state.model].pluralName }));
   }
   
   // READ ONE
@@ -101,26 +98,26 @@ class TestPage extends React.Component {
     const store = 'test';
     
     if (op === 'get') {
-      xhr('get', url, { key, store }).then(r => {
-        console.log(r);
-      });
+      customFetch(url, { key, store })
+      .then(r => console.log(r))
+      .catch(err => console.error(err));
     } else if (op === 'set') {
-      xhr('put', url, { key, value, store }).then(r => {
-        console.log(JSON.parse(r));
-      });
+      customFetch(url, { key, value, store }, { method: 'put' })
+      .then(r => console.log(r))
+      .catch(err => console.error(err));
     }
   }
   
   // CREATE IMAGE
   handleCreateImageClick() {
     console.log('Calling image server');
-    xhr('get', config.services.image.url + 'random/' + this.state.createImageSize).then(r => {
-      this.setState({
-        createImageUrl: r.url,
-        createImageOriginalUrl: r.originalUrl,
-        createImageOriginalName: r.originalName,
-      });
-    }, console.error);
+    customFetch(config.services.image.url + 'random/' + this.state.createImageSize)
+    .then(r => this.setState({
+      createImageUrl: r.url,
+      createImageOriginalUrl: r.originalUrl,
+      createImageOriginalName: r.originalName,
+    }))
+    .catch(err => console.error(err));
   }
   
   
@@ -245,7 +242,6 @@ class TestPage extends React.Component {
         <div>
         <h2 style={{display:'inline-block'}}>Records</h2>&nbsp;&nbsp;
         <button onClick={this.handleClear.bind(this)}>Clear</button>
-        <button onClick={this.handleDrop.bind(this)} style={{float:'right'}}>Drop database</button>
         </div>
         <ol start={state.recordsOffset}>
         { 

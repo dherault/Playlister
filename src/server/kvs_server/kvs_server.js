@@ -1,6 +1,6 @@
 import Hapi from 'hapi';
 import Catbox from 'catbox';
-import CatboxMongo from 'catbox-mongodb';
+import CatboxRedis from 'catbox-redis';
 // import io from 'socket.io-client';
 
 import config from '../../config';
@@ -12,10 +12,10 @@ import log, { logError } from '../../shared/utils/logger';
 
 const defaulTtl = 1000 * 60 * 60 * 24; // 1 day
 const port = config.services.kvs.port;
-const options = { partition: config.mongo.dbs.kvs , uri: config.mongo.url };
+const options = config.redis;
 
 const server = new Hapi.Server();
-const mongoClient = new Catbox.Client(CatboxMongo, options);
+const mongoClient = new Catbox.Client(CatboxRedis, options);
 
 server.connection({ port });
 

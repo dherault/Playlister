@@ -1,6 +1,7 @@
-import chalk from 'chalk';
+// import chalk from 'chalk';
 import isServer from './isServer';
 
+const chalk = isServer ? require('chalk') : (x => x);
 const colorMatching = { // Color schemes definition, text isn't optionnal
   '!!!': {
     text: 'red'

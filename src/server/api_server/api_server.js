@@ -4,13 +4,14 @@ import bcrypt from 'bcrypt';
 import hapiAuthJWT from 'hapi-auth-jwt2'; // http://git.io/vT5dZ
 
 import config from '../../config';
-import xhr from '../../shared/utils/xhr';
+// import xhr from '../../shared/utils/xhr';
+import customFetch from '../../shared/utils/customFetch';
 import log, { logError, logRequest } from '../../shared/utils/logger';
 import actionCreators from '../../shared/state/actionCreators';
 import { addJWTAuthStrategyTo, createSession, setSession } from '../utils/authUtils';
 import connectToWebsocketService from '../utils/connectToWebsocketService';
 import queryDatabase, { initMiddleware } from '../database/databaseMiddleware';
-import { connect, createCollections, dropDatabase } from '../database/databaseUtils';
+import { openConnection, createDatabase, createTables, dropDatabase } from '../database/databaseUtils';
 
 /*
   A RESTful JSON API server, based on actionCreators
@@ -65,16 +66,28 @@ server.register(hapiAuthJWT, err => {
       ['passwordHash', 'createdAt', 'updatedAt', 'creationIp'].map(x => delete r[x]);
       
       // Parallel profile picture processing
-      xhr('get', config.services.image.url + 'random/200').then(response => {
+      customFetch(config.services.image.url + 'random/200')
+      .then(r => {
         const data = { 
           id: result._id,
-          imageUrl: response.url, 
-          originalImageUrl: response.originalUrl,
+          imageUrl: r.url, 
+          originalImageUrl: r.originalUrl,
         };
+        queryDatabase('updateUser', data)
+        .then(result => socket.emit('noticeUpdateUser', data))
+        .catch(err => logError('API createUser afterQuery queryDatabase error', err));
+      })
+      .catch(err => logError('API createUser afterQuery fetch error', err));
+      // xhr('get', config.services.image.url + 'random/200').then(response => {
+      //   const data = { 
+      //     id: result._id,
+      //     imageUrl: response.url, 
+      //     originalImageUrl: response.originalUrl,
+      //   };
         
-        queryDatabase('updateUser', data).then(result => socket.emit('noticeUpdateUser', data), 
-          err => logError('API createUser afterQuery queryDatabase error', err));
-      }, err => logError('API createUser afterQuery xhr error', err));
+      //   queryDatabase('updateUser', data).then(result => socket.emit('noticeUpdateUser', data), 
+      //     err => logError('API createUser afterQuery queryDatabase error', err));
+      // }, err => logError('API createUser afterQuery xhr error', err));
       
       return Promise.resolve(r);
     },
@@ -131,7 +144,6 @@ server.register(hapiAuthJWT, err => {
           before(params, request).then(modifiedParams => 
             queryDatabase(intention, modifiedParams).then(result => 
               after(result, modifiedParams, request, response).then(modifiedResult => {
-                
                 // Handle 404
                 if (modifiedResult === null) response.statusCode = 404;
                 // Give session
@@ -215,18 +227,18 @@ server.register(hapiAuthJWT, err => {
   */
   
   // Connects to the mongo database
-  connect(config.mongo.url + config.mongo.dbs.main)
-  // .then(dropDatabase) // Not supposed to be here
-  .then(createCollections)
-  .then(db => {
+  openConnection(config.rethinkdb)
+  .then(createDatabase)
+  .then(createTables)
+  .then(initMiddleware)
+  .catch(err => {
+    logError('databaseUtils', err);
+  })
+  .then(() => {
     
-    // Passes the mongoclient object to db middleware
-    initMiddleware(db);
-    
-    server.start(() => {
+    server.start(err => {
+      if (err) throw err;
       log('.:.', 'API listening on port', port);
     });
-    
   });
-  
-}, err => console.error(err));
+});

@@ -2,12 +2,17 @@
 
 let config = {
   host: 'localhost',
-  mongo: {
-    url: 'mongodb://localhost:27017/',
-    dbs: {
-      main: 'playlister',
-      kvs: 'kvs',
-    }
+  rethinkdb: {
+    host: 'localhost',
+    port: 28015,
+    db: 'Playlister_dev',
+    timeout: 5,
+  },
+  redis: {
+    partition: 'examples',  // For redis this will store items under keys that start with examples:
+    host: 'localhost',      // If you don't supply, 127.0.0.1 is the default
+    port: '6379',           // If you don't supply, 6379 is the default
+    password: ''            // If you don't supply, auth command not sent to redis
   },
   jwt: {
     secretKey: 'secret',

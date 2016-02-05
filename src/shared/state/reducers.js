@@ -1,6 +1,6 @@
 import log from '../utils/logger';
 import definitions from '../models/definitions';
-import isEqual from 'lodash.isequal';
+import isEqual from 'lodash/isEqual';
 
 const reducers = {
   users: (state={}, { type, params, payload }) => {

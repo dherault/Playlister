@@ -1,11 +1,13 @@
 import config from '../../config';
 import definitions from '../models/definitions';
-import xhr from '../utils/xhr';
-import log from '../utils/logger';
+// import xhr from '../utils/xhr';
+import log, { logError } from '../utils/logger';
 import { capitalizeFirstChar } from '../utils/textUtils';
 import isServer from '../utils/isServer';
+import customFetch from '../utils/customFetch';
 
 const cac = createActionCreator;
+const apiUrl = config.services.api.url;
 
 // An action creator takes a k/v object argument and outputs a standard action
 const actionCreators = {
@@ -38,12 +40,6 @@ const actionCreators = {
     auth:       false,
   }),
   
-  drop: cac({
-    intention:  'drop',
-    method:     'delete',
-    path:       'drop',
-    auth:       true,
-  }),
 };
 
 export default Object.assign({}, createDefaultCRUDActionCreators(), actionCreators);
@@ -66,17 +62,20 @@ function createActionCreator(shape) {
     log('.A.', intention, params ? JSON.stringify(params) : '');
     log(`+++ --> ${method} ${path}`, params);
     
-    const promise = xhr(method, config.services.api.url + path, params, token || true, false);
+    const options = { method };
+    
+    // Credentials management
+    if (token) options.headers = { 'Authorization': token };
+    else options.credentials = 'include'; // for CORS requests
+    
+    const promise = customFetch(apiUrl + path, params, options);
     
     // New promise chain because promiseMiddleware is the end catcher
     promise.then(result => {
       if (!isServer) log(`+++ <-- ${intention}`, result);
-      return result;
-    }, ({ status, response, error }) => {
-      log('!!! Action', intention, params);
-      log('!!! Response', status, response);
-      if (error) log('!!!', error);
-    }); 
+    }, err => {
+      logError(`Action ${intention} promise rejection:`, err);
+    });
     
     return { types, params, promise };
   };

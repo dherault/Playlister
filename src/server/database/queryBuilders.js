@@ -1,26 +1,42 @@
-import { ObjectID } from 'mongodb';
-
-import log from '../../shared/utils/logger';
+import r from 'rethinkdb';
 import { capitalizeFirstChar } from '../../shared/utils/textUtils';
 import definitions from '../../shared/models/definitions';
 
-// Field filtering on/off
-const noDisclosure = { fields: { createdAt: 0, updatedAt: 0, creationIp: 0, passwordHash: 0 } };
-const noDisclosureLogin = { fields: { createdAt: 0, updatedAt: 0, creationIp: 0 } };
+// todo remove that
+// Field filtering
+// const noDisclosure = { fields: { createdAt: 0, updatedAt: 0, creationIp: 0, passwordHash: 0 } };
+// const noDisclosureLogin = { fields: { createdAt: 0, updatedAt: 0, creationIp: 0 } };
+
+const forbiddenKeys = ['createdAt', 'updatedAt', 'creationIp', 'passwordHash'];
+
+const aggregate = cursor => cursor.toArray();
+const normalize = array => {  
+  const obj = {};
+  array.forEach(o => obj[o.id] = o);
+  return obj;
+};
 
 /* Builders return a Promise that resolves data, they dont handle errors and assume their params are validated */
-let builders = {
+const builders = {
   
-  login: (db, { email }) => db.collection('users').findOne({ email }, noDisclosureLogin),
+  login: (c, { email }) => r.table('users')
+    .filter(r.row('email').eq(email).or(r.row('username').eq(email)))
+    .limit(1)
+    .without('createdAt', 'updatedAt', 'creationIp') // We want passwordHash
+    .run(c),
+    
   logout: () => Promise.resolve(),
   
   // Reads all documents for a given collection
-  readAll: (db, params) => db.collection(params.collection).find({}, noDisclosure).toArray().then(normalize),
+  readAll: (c, { table }) => r.table(table).run(c).then(aggregate).then(normalize),
   
-  readUserByUsername: (db, { username }) => db.collection('users').findOne({ username }, noDisclosure),
+  readUserByUsername: (c, { username }) => r.table('users')
+    .filter({ username })
+    .limit(1)
+    .without(...forbiddenKeys)
+    .run(c),
   
-  // Drops collections
-  drop: db => db.dropDatabase(),
+  randomRow: (c, { table }) => r.table(table).orderBy(row => r.random()).limit(1).run(c),
 };
 
 // Defaults can be overwritten
@@ -29,30 +45,22 @@ export default Object.assign({}, createDefaultCRUDBuilders(), builders);
 // Default CRUD operations for models
 function createDefaultCRUDBuilders() {
   
-    const CRUDbuilders = {};
-    
-    for (let model in definitions) {
-      const { name, pluralName } = definitions[model];
-      const suffix = capitalizeFirstChar(name);
-      const c = db => db.collection(pluralName);
-      
-      CRUDbuilders['read' + suffix] = (db, { id }) => c(db).findOne({ _id: ObjectID(id) }, noDisclosure);
-      CRUDbuilders['create' + suffix] = (db, params) => c(db).insertOne(params).then(() => params); // then not here
-      CRUDbuilders['update' + suffix] = (db, params) => {
-        let updatedData = Object.assign({}, params);
-        delete updatedData.id;
-        
-        return c(db).updateOne({ _id: ObjectID(params.id)}, { $set: updatedData }).then(r => r.result);
-      };
-      CRUDbuilders['delete' + suffix] = (db, { id }) => c(db).deleteOne({ _id: ObjectID(id) });
-    }
-    
-    return CRUDbuilders;
-}
-
-function normalize(array) {
-  const x = {};
-  array.forEach(doc => x[doc._id] = doc);
+  const builders = {};
   
-  return x;
+  for (let model in definitions) {
+    const { name, pluralName } = definitions[model];
+    const suffix = capitalizeFirstChar(name);
+    const t = r.table(pluralName);
+    
+    builders['read' + suffix] = (c, { id }) => t.get(id).without(...forbiddenKeys).run(c);
+    builders['create' + suffix] = (c, params) => t.insert(params).run(c);
+    builders['update' + suffix] = (c, params) => {
+      const p = Object.assign({}, params);
+      delete p.id;
+      return t.get(params.id).update(p).run(c);
+    };
+    builders['delete' + suffix] = (c, { id }) => t.get(id).delete().run(c);
+  }
+  
+  return builders;
 }

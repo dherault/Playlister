@@ -1,7 +1,8 @@
 import JWT from 'jsonwebtoken';
 
 import config from '../../config';
-import xhr from '../../shared/utils/xhr';
+import customFetch from '../../shared/utils/customFetch';
+// import xhr from '../../shared/utils/xhr';
 import log, { logError } from '../../shared/utils/logger';
 
 const { secretKey } = config.jwt;
@@ -72,15 +73,17 @@ export function verifyToken(token) {
 
 export function getSession(id) {
   log('... getSession');
-  return xhr('get', config.services.kvs.url, { store: config.jwt.kvsStore, key: id }, false, false);
+  return customFetch(config.services.kvs.url, { store: config.jwt.kvsStore, key: id });
 }
 
 export function setSession(session) {
   log('... setSession');
-  return xhr('put', config.services.kvs.url, { 
+  return customFetch(config.services.kvs.url, { 
     store: config.jwt.kvsStore, 
     key: session.id, 
     value: session, 
     ttl: config.jwt.cookieOptions.ttl
-  }, false, false);
+  }, {
+    method: 'put'
+  });
 }

@@ -38,6 +38,7 @@ class UserProfile extends React.Component {
       textAlign: 'center',
     };
     
+    // This is not enough
     return !user ? <NotFound /> : <div style={wrapperStyle}>
       <Link to="/test">Test Page</Link>&nbsp;
       <Link to="/">Landing Page</Link>&nbsp;
