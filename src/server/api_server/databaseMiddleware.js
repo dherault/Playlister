@@ -3,10 +3,9 @@ import { logFetch, log } from '../../shared/utils/logger';
 
 let connection;
 
-// This is horrible
 export function initMiddleware(dbConnection) {
   log('Initializing db middleware');
-  connection = dbConnection;
+  connection = dbConnection; // This is horrible
   return dbConnection;
 }
 

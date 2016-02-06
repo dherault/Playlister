@@ -18,3 +18,4 @@ To do :
 - [ ] Bundle optimization
 - [ ] Optimistic reducers
 - [ ] refactor Aquarelle
+- [ ] cache for API and rendering server

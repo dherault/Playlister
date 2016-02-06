@@ -80,8 +80,10 @@ export default function handleRendering(request, reply) {
         
         response.source = html.replace('<body>', `<body><div id="mountNode">${mountMeImFamous}</div>` +
           `<script>window.STATE_FROM_SERVER=${JSON.stringify(serverState)}</script>`);
+          
         response.send(); // Bon voyage
-        log('Response sent');
+        
+        log('Response sent:', response.statusCode);
         
       }, err => handle500('Phidippides', err)); // Don't 'catch', double catch means troubles
     }

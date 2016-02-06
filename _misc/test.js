@@ -1,3 +1,4 @@
+const _ = console.log;
 // var mongoose = require('mongoose');
 // mongoose.connect('mongodb://localhost/test');
 
@@ -10,25 +11,37 @@
 
 // console.log('end');
 
-const l = console.log;
 
 // const a = new Promise((y, n) => {
 //   throw 'No!'
 // });
 
-// a.then(x => l('success1', x), x => l('faillure1', x))
-// .then(x => l('success2', x), x => l('faillure2', x))
+// a.then(x => _('success1', x), x => _('faillure1', x))
+// .then(x => _('success2', x), x => _('faillure2', x))
 
-const a = new Promise((y, n) => {
-  n('No');
-}).catch(err => {
-  l('caught', err);
-  return 'yolo';
-});
+// const a = new Promise((y, n) => {
+//   n('No');
+// }).catch(err => {
+//   _('caught', err);
+//   return 'yolo';
+// });
 
-a.then(r => {
-  l(r);
-});
+// a.then(r => {
+//   _(r);
+// });
 
-// a.then(x => l('success1', x)).catch(x => { l('faillure1', x); throw x})
-// .then(x => l('success2', x), x => l('faillure2', x))
+// a.then(x => _('success1', x)).catch(x => { _('faillure1', x); throw x})
+// .then(x => _('success2', x), x => _('faillure2', x))
+
+// const a = [{a: 1}, {a: 1}];
+// _(Array.from(new Set(a))); // :'(
+// const a = {a: 1};
+// const b= [a, a];
+// _(Array.from(new Set(b))); // :)
+
+const x = Promise.resolve();
+const y = Promise.resolve(true);
+
+const a = [x, x, y, x];
+
+_(a);

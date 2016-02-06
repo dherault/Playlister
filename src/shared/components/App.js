@@ -5,10 +5,10 @@ import DevMenu from './DevMenu';
 class App extends React.Component {
   
   static runPhidippides(renderProps, sessionUserId) {
-    if (sessionUserId) return [{
-      id: 'sessionUser',
+    return [{
+      id: 'appUser',
       actionCreator: ac.readUser,
-      getParams: () => ({ id: sessionUserId })
+      getParams: () => sessionUserId ? ({ id: sessionUserId }) : false, // returning a falsy value skip the invocation but completes the task
     }];
   }
   
