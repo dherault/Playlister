@@ -1,6 +1,7 @@
+import isPlainObject from 'lodash/isPlainObject';
+
 import config from '../../config';
 import definitions from '../models/definitions';
-// import xhr from '../utils/xhr';
 import log, { logError } from '../utils/logger';
 import { capitalizeFirstChar } from '../utils/textUtils';
 import isServer from '../utils/isServer';
@@ -59,6 +60,8 @@ function createActionCreator(shape) {
   // Optionnaly, a token can be passed to the actionCreator to ensure remote auth via the Authorization header
   const actionCreator = (params, token) => {
     
+    if (params && !isPlainObject(params)) throw new Error(`actionCreator ${intention}: params should be a plain object.`);
+    
     log('.A.', intention, params ? JSON.stringify(params) : '');
     log(`+++ --> ${method} ${path}`, params);
     
@@ -73,8 +76,8 @@ function createActionCreator(shape) {
     // New promise chain because promiseMiddleware is the end catcher
     promise.then(result => {
       if (!isServer) log(`+++ <-- ${intention}`, result);
-    }, err => {
-      logError(`Action ${intention} promise rejection:`, err);
+    }, response => {
+      log(`!!! Action ${intention} error:`, response.statusText || response);
     });
     
     return { types, params, promise };

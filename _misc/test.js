@@ -20,8 +20,15 @@ const l = console.log;
 // .then(x => l('success2', x), x => l('faillure2', x))
 
 const a = new Promise((y, n) => {
-  n('No')
+  n('No');
+}).catch(err => {
+  l('caught', err);
+  return 'yolo';
 });
 
-a.then(x => l('success1', x)).catch(x => { l('faillure1', x); throw x})
-.then(x => l('success2', x), x => l('faillure2', x))
+a.then(r => {
+  l(r);
+});
+
+// a.then(x => l('success1', x)).catch(x => { l('faillure1', x); throw x})
+// .then(x => l('success2', x), x => l('faillure2', x))

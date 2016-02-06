@@ -10,11 +10,14 @@ const reducers = {
     switch (type) {
       
       case 'SUCCESS_LOGIN':
-        return Object.assign({}, state, { [payload._id]: Object.assign({}, payload) });
-      
       case 'SUCCESS_READ_USER_BY_USERNAME':
-        return Object.assign({}, state, { [payload._id]: Object.assign({}, payload) });
+        return Object.assign({}, state, { [payload.id]: Object.assign({}, payload) });
         
+      case 'FAILURE_READ_USER_BY_USERNAME':
+        return payload.status === 404 ? 
+          Object.assign({}, state, { ['notFound' + Math.random()]: Object.assign({}, params, { notFound: true }) }) :
+          state;
+          
       default:
         return state;
     }
@@ -23,9 +26,9 @@ const reducers = {
   session: (state={}, { type, params, payload }) => {
     switch (type) {
       
-      case 'SUCCESS_CREATE_USER':
       case 'SUCCESS_LOGIN':
-        return { userId: payload._id, token: payload.token };
+      case 'SUCCESS_CREATE_USER':
+        return { userId: payload.id, token: payload.token };
         
       case 'SUCCESS_LOGOUT':
         return {};
@@ -63,32 +66,28 @@ function enhanceCRUD(model, reducer) {
     
     const { type, params, payload } = action;
     
-    // Action types to process
-    const bingo = ['READ', 'CREATE', 'UPDATE', 'DELETE']
-      .map(x => `SUCCESS_${x}_${ns}`)
-      .concat(['SUCCESS_READ_ALL']);
-    
-    switch (bingo.indexOf(type)) {
+    switch (type) {
       
-      case -1: // Other action types
+      case `SUCCESS_READ_${ns}`:
+      case `SUCCESS_CREATE_${ns}`:
+        newState[payload.id] = payload;
         return newState;
       
-      case 0: // read
-      case 1: // create
-        newState[payload._id] = payload;
-        return newState;
-      
-      case 2: // update
+      case `SUCCESS_UPDATE_${ns}`:
         const { id } = params;
         newState[id] = Object.assign({}, newState[id], params);
         return newState;
       
-      case 3: // delete
+      case `SUCCESS_DELETE_${ns}`:
         delete newState[params.id];
         return newState;
       
-      case 4: // read all
-        return params.collection !== np ? newState : Object.assign({}, payload);
+      case 'SUCCESS_READ_ALL':
+        return params.table !== np ? newState : Object.assign({}, payload);
+        
+      case `FAILURE_READ_${ns}`:
+        if (payload.status === 404) newState[params.id] = Object.assign({}, params, { notFound: true });
+        return newState;
       
       default:
         return newState;

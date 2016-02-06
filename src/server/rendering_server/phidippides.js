@@ -115,15 +115,12 @@ export default function phidippides(store, renderProps) {
           completedTasksIds.push(id);
           resolve();
           
-        }, ({ response, status, error }) => {
-          if (error) return reject(error); // 500
-          if (status === 500) return reject('API replied 500'); // 500
-          else if (status === 404 && notFoundTriggers404) return resolve(NOT_FOUND);
-          else {
-            // This is probably stupid
+        }, response => {
+          if (response.status === 404) {
             completedTasksIds.push(id);
-            resolve();
-          }
+            return resolve(notFoundTriggers404 ? NOT_FOUND : undefined);
+          } 
+          reject(response); // 500
         });
       }
     });

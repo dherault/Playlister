@@ -63,13 +63,6 @@ class LandingPage extends React.Component {
     
     return <div style={wrapperStyle}>
       
-      <div>
-          <Link to='/test'>Test page</Link>  -&nbsp;
-          <a href="https://github.com/dherault/Playlister" target="_blank">
-            Github
-          </a>
-      </div>
-      
       <div style={signStyle}>
         <div> Sign in/up with  </div>
         

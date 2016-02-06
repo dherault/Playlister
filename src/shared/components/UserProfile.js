@@ -3,15 +3,16 @@ import { Link } from 'react-router';
 import { connect } from 'react-redux';
 
 import NotFound from './NotFound';
+import LoadingSpinner from './LoadingSpinner';
 import ac from '../state/actionCreators';
 
 class UserProfile extends React.Component {
   
-  constructor() {
-    super();
-    this.state = { 
-    };
-  }
+  // constructor() {
+  //   super();
+  //   this.state = { 
+  //   };
+  // }
   
   static runPhidippides(renderProps) {
     return [{
@@ -22,10 +23,30 @@ class UserProfile extends React.Component {
     }];
   }
   
+  componentDidMount() {
+    // Client-side data fetching
+    const { username } = this.props.routeParams;
+    if (!this.getUser(username)) {
+      this.props.dispatch(ac.readUserByUsername({ username }));
+    }
+  }
+  
+  componentWillReceiveProps(nextProps) {
+    // Client-side data fetching triggered by transitionning from one profile to another
+    const nextUsername = nextProps.routeParams.username;
+    if (this.props.routeParams.username !== nextUsername && !this.getUser(nextUsername)) {
+      this.props.dispatch(ac.readUserByUsername({ username: nextUsername }));
+    }
+  }
+  
+  getUser(username) {
+    const { users } = this.props;
+    return users[Object.keys(users).find(key => users[key].username === username)];
+  }
+  
   render() {
-    const { users, routeParams: { username } } = this.props;
+    const user = this.getUser(this.props.routeParams.username);
     
-    const user = users[Object.keys(users).find(key => users[key].username === username)];
     // if (!user) throw new Error('no user found in store!');
     // if (true) throw new Error('yolo');
     
@@ -38,12 +59,9 @@ class UserProfile extends React.Component {
       textAlign: 'center',
     };
     
-    // This is not enough
-    return !user ? <NotFound /> : <div style={wrapperStyle}>
-      <Link to="/test">Test Page</Link>&nbsp;
-      <Link to="/">Landing Page</Link>&nbsp;
+    return !user ? <LoadingSpinner /> : user.notFound ? <NotFound /> : <div style={wrapperStyle}>
       <div style={profileStyle}>
-        <div>{ user._id }</div>
+        <div>{ user.id }</div>
         <div>{ user.username }</div>
         <img src={user.imageUrl} style={{borderRadius:100}}/>
       </div>

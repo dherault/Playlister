@@ -1,6 +1,6 @@
 import React from 'react';
 import ac from '../state/actionCreators';
-// import { Link } from 'react-router';
+import DevMenu from './DevMenu';
 
 class App extends React.Component {
   
@@ -14,7 +14,10 @@ class App extends React.Component {
   
   render() {
     
-    return this.props.children;
+    return <div>
+      <DevMenu />
+      { this.props.children }
+    </div>;
   }
 }
 

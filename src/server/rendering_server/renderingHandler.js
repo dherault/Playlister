@@ -1,6 +1,7 @@
 import fs from 'fs';
 import { renderToString } from 'react-dom/server';
-import { match, RouterContext } from 'react-router';
+import { match } from 'react-router';
+import isPlainObject from 'lodash/isPlainObject';
 
 import phidippides from './phidippides';
 import config from '../../config';
@@ -72,9 +73,9 @@ export default function handleRendering(request, reply) {
         
         // serverState trimming to save brandwith
         ['records'].forEach(key => delete serverState[key]); // Goodbye useless keys
-        // for (let key in serverState) {
-        //   if (!Object.keys(serverState[key]).length) delete serverState[key]; // Goodbye empty keys
-        // }
+        for (let key in serverState) {
+          if (isPlainObject(serverState[key]) && !Object.keys(serverState[key]).length) delete serverState[key]; // Goodbye empty keys
+        }
         
         
         response.source = html.replace('<body>', `<body><div id="mountNode">${mountMeImFamous}</div>` +

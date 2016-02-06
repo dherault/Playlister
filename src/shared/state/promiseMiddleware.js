@@ -6,11 +6,11 @@ export default function promiseMiddleware({ dispatch, getState }) {
     if (!promise) return next(action);
     
     const [REQUEST, SUCCESS, FAILURE] = types;
-    next({params, type: REQUEST});
+    next({ params, type: REQUEST });
     
     promise.then(
-      payload => next({params, payload, type: SUCCESS}),
-      payload => next({params, payload, type: FAILURE})
+      payload => next({ params, payload, type: SUCCESS }),
+      payload => next({ params, payload, type: FAILURE }) // Payload is the response object
     );
   };
 }

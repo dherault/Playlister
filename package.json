@@ -15,7 +15,7 @@
     "webpack_server": "nodemon -q -x \"babel-node\" -w ./src/server/utils -w ./src/server/webpack_server -e js ./src/server/webpack_server/webpack_server.js",
     "rendering_server": "nodemon -q -x \"babel-node\" -w ./src/server/utils -w ./src/server/rendering_server -w ./src/shared -e js ./src/server/rendering_server/rendering_server.js",
     "asset_server": "nodemon -q -x \"babel-node\" -w ./src/server/utils -w ./src/server/asset_server -e js ./src/server/asset_server/asset_server.js",
-    "api_server": "nodemon -q -x \"babel-node\" -w ./src/server/utils -w ./src/server/api_server -w ./src/shared -i ./src/shared/components -e js ./src/server/api_server/api_server.js",
+    "api_server": "nodemon -q -x \"babel-node\" -w ./src/server/utils -w ./src/server/api_server -w ./src/server/database -w ./src/shared -i ./src/shared/components -e js ./src/server/api_server/api_server.js",
     "websocket_server": "nodemon -q -x \"babel-node\" -w ./src/server/utils -w ./src/server/websocket_server -e js ./src/server/websocket_server/websocket_server.js",
     "kvs_server": "nodemon -q -x \"babel-node\" -w ./src/server/utils -w ./src/server/kvs_server -e js ./src/server/kvs_server/kvs_server.js",
     "image_server": "nodemon -q -x \"babel-node\" -w ./src/server/utils -w ./src/server/image_server -e js ./src/server/image_server/image_server.js",

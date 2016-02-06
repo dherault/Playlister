@@ -9,7 +9,7 @@ let config = {
     timeout: 5,
   },
   redis: {
-    partition: 'examples',  // For redis this will store items under keys that start with examples:
+    partition: 'playlister',// For redis this will store items under keys that start with playlister:
     host: 'localhost',      // If you don't supply, 127.0.0.1 is the default
     port: '6379',           // If you don't supply, 6379 is the default
     password: ''            // If you don't supply, auth command not sent to redis

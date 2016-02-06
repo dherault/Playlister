@@ -136,8 +136,6 @@ class TestPage extends React.Component {
       
         <h1>Test Page</h1>
         <div>It's time to manually test stuff!</div>
-        <Link to='/'>Home</Link>
-        &nbsp;- <a href="https://github.com/dherault/Playlister" target="_blank">Github</a>
         
         <div>
           <span>Current model: </span>

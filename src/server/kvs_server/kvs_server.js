@@ -15,7 +15,7 @@ const port = config.services.kvs.port;
 const options = config.redis;
 
 const server = new Hapi.Server();
-const mongoClient = new Catbox.Client(CatboxRedis, options);
+const storage = new Catbox.Client(CatboxRedis, options);
 
 server.connection({ port });
 
@@ -35,7 +35,7 @@ server.route({
     
     log('KVS Get', key);
     
-    mongoClient.get({ segment: store, id: key }, (err, cached) => {
+    storage.get({ segment: store, id: key }, (err, cached) => {
       if (err) {
         response.statusCode = 500;
         response.send();
@@ -59,7 +59,7 @@ server.route({
     
     const response = reply.response().hold();
     const { key, value, store, ttl } = request.payload;
-    
+    log(key, value, store, ttl);
     if (!store || !key || typeof value === 'undefined') {
       response.statusCode = 400; // Bad request (?)
       return response.send();
@@ -67,7 +67,7 @@ server.route({
     
     log('KVS Set', key, value);
     
-    mongoClient.set({ id: key, segment: store }, value, ttl || defaulTtl, err => {
+    storage.set({ id: key, segment: store }, value, ttl || defaulTtl, err => {
       if (err) {
         response.statusCode = 500;
         response.send();
@@ -83,7 +83,7 @@ server.route({
 server.start(err => {
   if (err) throw err;
   
-  mongoClient.start(err => {
+  storage.start(err => {
     if (err) throw err;
     
     log('.:. KVS server listening on port', port);
