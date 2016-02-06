@@ -7,10 +7,10 @@ import phidippides from './phidippides';
 import config from '../../config';
 import routes from '../../shared/routes';
 import createApp from '../../shared/createApp';
-import logg, { logError } from '../../shared/utils/logger';
+import { logRendering, logError } from '../../shared/utils/logger';
 import { createSession } from '../utils/authUtils';
 
-const log = (...x) => logg('RND', ...x);
+const log = logRendering;
 const html = fs.readFileSync('./src/server/public/index.html', 'utf8')
   .replace('</body>', `<script src="${config.services.webpack.url}bundle.js"></script></body>`);
 

@@ -6,16 +6,16 @@ import { createStore, combineReducers, applyMiddleware, compose } from 'redux';
 // RouterContext gets imported to client for now;
 
 import routes from './routes';
-import log from './utils/logger';
+import { log } from './utils/logger';
 import isServer from './utils/isServer';
 import reducers from './state/reducers';
 import promiseMiddleware from './state/promiseMiddleware';
-// import sideEffects from '../../client/sideEffects';
+
 
 // This is not universal enough !!! To be refactored
 export default function createApp(initialState, renderProps={}) {
   
-  log('... Initializing UI and store');
+  log('Initializing UI and store');
   
   let enhance, reducer, router;
   

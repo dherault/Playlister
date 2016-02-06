@@ -1,7 +1,7 @@
 import r from 'rethinkdb';
 
 import config from '../../config';
-import log from '../../shared/utils/logger';
+import { log } from '../../shared/utils/logger';
 import definitions from '../../shared/models/definitions';
 
 const { db } = config.rethinkdb;
@@ -11,7 +11,7 @@ const { db } = config.rethinkdb;
 export function openConnection(options={}) {
   
   return r.connect(options).then(connection => {
-    log('... Connected correctly to RethinkDB');
+    log('Connected correctly to RethinkDB');
     return connection;
   });
 }
@@ -19,13 +19,13 @@ export function openConnection(options={}) {
 export function closeConnection(connection) {
   
   return connection.close().then(() => {
-    log('... Disconnected correctly from RethinkDB');
+    log('Disconnected correctly from RethinkDB');
     return connection;
   });
 }
 
 export function createDatabase(connection) {
-  log('... Creating database', db);
+  log('Creating database', db);
   
   return r.dbList().run(connection)
   .then(result => result.includes(db) ? connection : r.dbCreate(db).run(connection).then(() => connection));
@@ -40,7 +40,7 @@ export function createTables(connection) {
       const { pluralName } = definitions[model];
       
       if (!tableList.includes(pluralName)) {
-        log('... Creating table', pluralName);
+        log('Creating table', pluralName);
         promises.push(r.tableCreate(pluralName).run(connection));
       }
     }
@@ -51,7 +51,7 @@ export function createTables(connection) {
 
 
 export function dropDatabase(connection) {
-  log('... Dropping database', db);
+  log('Dropping database', db);
   
   return r.dbDrop(db).run(connection).then(() => connection);
 }

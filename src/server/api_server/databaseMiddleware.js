@@ -1,11 +1,11 @@
 import builders from './queryBuilders';
-import log from '../../shared/utils/logger';
+import { logFetch, log } from '../../shared/utils/logger';
 
 let connection;
 
 // This is horrible
 export function initMiddleware(dbConnection) {
-  log('... Initializing db middleware');
+  log('Initializing db middleware');
   connection = dbConnection;
   return dbConnection;
 }
@@ -13,7 +13,7 @@ export function initMiddleware(dbConnection) {
 // Resolves data based on intention and params
 export default function queryDatabase(intention, params) {
   
-  log('... queryDatabase', intention, params);
+  logFetch('-->', intention, params);
   if (!connection) return Promise.reject('No database connection');
   
   const d = new Date();
@@ -23,8 +23,8 @@ export default function queryDatabase(intention, params) {
   if (typeof builder === 'function') {
     
     const query = builder(connection, params).then(result => {
-      log(`+++ <-- ${intention} after ${new Date() - d}ms`);
-      log('+++', result);
+      logFetch(`<-- ${intention} after ${new Date() - d}ms`);
+      logFetch(result);
       return result;
     });
     

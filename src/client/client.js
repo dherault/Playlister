@@ -5,8 +5,9 @@ import createApp from '../shared/createApp';
 import registerSideEffects from './registerSideEffects';
 import registerShortcuts from './registerShortcuts';
 import registerWebsocket from './registerWebsocket';
+import { logStart, log } from '../shared/utils/logger';
 
-console.log('Hello client!');
+logStart('Hello client!');
 
 // App creation
 const { store, userInterface } = createApp(window.STATE_FROM_SERVER || {});
@@ -15,7 +16,7 @@ const { store, userInterface } = createApp(window.STATE_FROM_SERVER || {});
 ReactDOM.render(
   userInterface,
   document.getElementById('mountNode'),
-  () => console.log('App rendered.')
+  () => log('App rendered')
 );
 
 // Let's give the store instance to whatever needs it

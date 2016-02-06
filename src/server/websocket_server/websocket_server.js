@@ -2,14 +2,14 @@ import http from 'http';
 import socketIO from 'socket.io';
 
 import config from '../../config';
-import logg, { logError } from '../../shared/utils/logger';
+import { logWebsocket, logError, logStart } from '../../shared/utils/logger';
 import { verifyToken } from '../utils/authUtils';
 
 /*
   A websocket server for users (clients) and services
 */
 
-const log = (...x) => logg('_w_', ...x);
+const log = logWebsocket;
 const { port, serviceSecretNamespace, servicesSecretKey } = config.services.websocket;
 const app = http.createServer((req, res) => log('!!!', 'WS server request'));
 const io = socketIO(app);
@@ -126,4 +126,4 @@ servicesNamespace.on('connect', socket => {
   }
 });
 
-app.listen(port, () => logg('.:. Websocket server listening on port', port));
+app.listen(port, () => logStart('Websocket server listening on port', port));

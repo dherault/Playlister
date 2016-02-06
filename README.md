@@ -8,13 +8,13 @@ To do :
 - [x] Handle 404s once and for all in stores
 - [x] Migrate from MongoDb to RethinkDb
 - [x] Use Redis as key/value store
-- [ ] Rewrite logger from scratch
-- [ ] Refactor API
+- [x] Rewrite logger from scratch
 - [ ] API validations
-- [ ] Refactor and comment
-- [ ] Error testing (promise catching)
 - [ ] Cookies config
+- [ ] Error testing (promise catching)
+- [ ] Refactor API
+- [ ] Refactor and comment
 - [ ] Client-side login validation and errors
 - [ ] Bundle optimization
 - [ ] Optimistic reducers
-
+- [ ] refactor Aquarelle

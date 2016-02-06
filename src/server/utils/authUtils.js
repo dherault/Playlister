@@ -3,12 +3,12 @@ import JWT from 'jsonwebtoken';
 import config from '../../config';
 import customFetch from '../../shared/utils/customFetch';
 // import xhr from '../../shared/utils/xhr';
-import log, { logError } from '../../shared/utils/logger';
+import { log, logError } from '../../shared/utils/logger';
 
 const { secretKey } = config.jwt;
 
 export function createSession(userId) {
-  log('... createSession');
+  log('createSession');
   
   const session = {
     id: userId,
@@ -25,7 +25,7 @@ export function createSession(userId) {
 }
 
 export function validateSession(decoded, request, callback) {
-  log('... validateSession');
+  log('validateSession');
   // log(decoded);
   const { id } = decoded;
   if (!id) return callback(new Error('validateSession: no id found in decoded token'), false);
@@ -72,12 +72,12 @@ export function verifyToken(token) {
 }
 
 export function getSession(id) {
-  log('... getSession');
+  log('getSession');
   return customFetch(config.services.kvs.url, { store: config.jwt.kvsStore, key: id });
 }
 
 export function setSession(session) {
-  log('... setSession');
+  log('setSession');
   return customFetch(config.services.kvs.url, { 
     store: config.jwt.kvsStore, 
     key: session.id, 

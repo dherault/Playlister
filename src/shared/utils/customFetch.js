@@ -1,7 +1,5 @@
-// import nodeFetch from 'node-fetch';
 import isServer from './isServer';
 import isPlainObject from 'lodash/isPlainObject';
-// import log from './logger';
 
 function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {

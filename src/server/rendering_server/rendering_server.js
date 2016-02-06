@@ -2,7 +2,7 @@ import Hapi from 'hapi';
 import hapiAuthJWT from 'hapi-auth-jwt2'; // http://git.io/vT5dZ
 
 import config from '../../config';
-import log, { logError, logRequest } from '../../shared/utils/logger';
+import { logRendering, logRequest, logStart } from '../../shared/utils/logger';
 import { addJWTAuthStrategyTo } from '../utils/authUtils';
 import renderingHandler from './renderingHandler';
 
@@ -16,7 +16,7 @@ const port = config.services.rendering.port;
 server.connection({ port });
 
 server.ext('onRequest', (request, reply) => {
-  logRequest('RND', request);
+  logRequest(logRendering, request);
   reply.continue();
 });
 
@@ -37,7 +37,7 @@ server.register(hapiAuthJWT, err => {
   server.start(err => {
     
     if (err) throw err;
-    log('.:. Rendering server listening on port', port);
+    logStart('Rendering server listening on port', port);
   });
   
 });

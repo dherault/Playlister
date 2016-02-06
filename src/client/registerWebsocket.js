@@ -1,8 +1,10 @@
 import io from 'socket.io-client';
 
 import config from '../config';
-import log from '../shared/utils/logger';
+import { logWebsocket } from '../shared/utils/logger';
 import ac from '../shared/state/actionCreators';
+
+const log = logWebsocket;
 
 export default function registerWebsocket(store) {
   
@@ -25,7 +27,7 @@ export default function registerWebsocket(store) {
   
   for (let key in handlers) {
     socket.on(key, data => {
-      log('_w_', key + ':', data);
+      log(key + ':', data);
       handlers[key](data);
     });
   }

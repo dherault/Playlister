@@ -3,11 +3,16 @@ import uuid from 'uuid';
 
 import config from '../../config';
 import Aquarelle from './aquarelle';
-import log, { logError } from '../../shared/utils/logger';
+import { createLogger, logError, logStart } from '../../shared/utils/logger';
 
 /*
   An HTTP service able to generate random profile pictures
 */
+
+const log = createLogger({
+  prefix: 'IMG',
+  chalk: 'bgBlack',
+});
 
 const server = new Hapi.Server();
 const port = config.services.image.port;
@@ -27,7 +32,7 @@ server.route({
     const name = uuid.v4() + '.png';
     const width = request.params.size;
     
-    log('IMG', 'Get /random/', width);
+    log('Get /random/', width);
     
     profilePictureGenerator
       .generateFile(imagesDir + 'generated/' + name, { width })
@@ -49,6 +54,6 @@ server.route({
   
 server.start(err => {
   if (err) throw err;
-  log('.:. Image server listening on port', port);
+  logStart('Image server listening on port', port);
 });
   

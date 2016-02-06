@@ -3,7 +3,7 @@ import webpack from 'webpack';
 import WDS from 'webpack-dev-server';
 
 import config from '../../config.js';
-import log from '../../shared/utils/logger';
+import { logStart } from '../../shared/utils/logger';
 
 const port = config.services.webpack.port;
 const publicPath = config.services.webpack.url;
@@ -84,5 +84,5 @@ new WDS(bundle, {
 // 0.0.0.0 because behind VM
 .listen(port, '0.0.0.0', err => {
   if (err) return console.error('WDS.listen', err);
-  log(`.:. Webpack server listening on port ${port}`);
+  logStart(`Webpack server listening on port ${port}`);
 });

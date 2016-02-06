@@ -4,11 +4,16 @@ import CatboxRedis from 'catbox-redis';
 // import io from 'socket.io-client';
 
 import config from '../../config';
-import log, { logError } from '../../shared/utils/logger';
+import { createLogger, logStart } from '../../shared/utils/logger';
 
 /* 
   A key-value storage server with caching
 */
+
+const log = createLogger({
+  prefix: 'KVS',
+  chalk: 'bgBlack',
+});
 
 const defaulTtl = 1000 * 60 * 60 * 24; // 1 day
 const port = config.services.kvs.port;
@@ -86,6 +91,6 @@ server.start(err => {
   storage.start(err => {
     if (err) throw err;
     
-    log('.:. KVS server listening on port', port);
+    logStart('KVS server listening on port', port);
   });
 });

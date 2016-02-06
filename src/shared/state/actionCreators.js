@@ -2,10 +2,17 @@ import isPlainObject from 'lodash/isPlainObject';
 
 import config from '../../config';
 import definitions from '../models/definitions';
-import log, { logError } from '../utils/logger';
+import { createLogger, logError, logFetch } from '../utils/logger';
 import { capitalizeFirstChar } from '../utils/textUtils';
 import isServer from '../utils/isServer';
 import customFetch from '../utils/customFetch';
+
+const log = createLogger({
+  prefix: '.A.',
+  chalk: 'bgGreen',
+  textClient: 'White',
+  backgroundClient: 'YellowGreen',
+});
 
 const cac = createActionCreator;
 const apiUrl = config.services.api.url;
@@ -62,22 +69,23 @@ function createActionCreator(shape) {
     
     if (params && !isPlainObject(params)) throw new Error(`actionCreator ${intention}: params should be a plain object.`);
     
-    log('.A.', intention, params ? JSON.stringify(params) : '');
-    log(`+++ --> ${method} ${path}`, params);
-    
     const options = { method };
+    const url = apiUrl + path;
+    
+    log(intention, params);
+    logFetch(`--> ${method} ${url}`);
     
     // Credentials management
     if (token) options.headers = { 'Authorization': token };
     else options.credentials = 'include'; // for CORS requests
     
-    const promise = customFetch(apiUrl + path, params, options);
+    const promise = customFetch(url, params, options);
     
     // New promise chain because promiseMiddleware is the end catcher
     promise.then(result => {
-      if (!isServer) log(`+++ <-- ${intention}`, result);
+      if (!isServer) logFetch(`<-- ${intention}`, result);
     }, response => {
-      log(`!!! Action ${intention} error:`, response.statusText || response);
+      logError(`Action ${intention} error:`, response.statusText || response);
     });
     
     return { types, params, promise };

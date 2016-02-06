@@ -1,11 +1,18 @@
-import log from '../utils/logger';
+import { createLogger } from '../utils/logger';
 import definitions from '../models/definitions';
 import isEqual from 'lodash/isEqual';
+
+const log = createLogger({
+  prefix: '.R.',
+  chalk: 'bgCyan',
+  textClient: 'White',
+  backgroundClient: 'SkyBlue',
+});
 
 const reducers = {
   users: (state={}, { type, params, payload }) => {
     
-    log('.R. ' + type); // keep this line in the first reducer
+    log(type); // keep this line in the first reducer
     
     switch (type) {
       

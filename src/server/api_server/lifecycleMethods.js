@@ -4,10 +4,12 @@ import config from '../../config';
 import customFetch from '../../shared/utils/customFetch';
 import queryDatabase from './databaseMiddleware';
 import connectToWebsocketService from '../utils/connectToWebsocketService';
-import log, { logError } from '../../shared/utils/logger';
+import { logApi, logError } from '../../shared/utils/logger';
 import { createReason } from './apiUtils.js';
 import { createSession, setSession } from '../utils/authUtils';
 
+
+const log = logApi;
 
 // Creates websocket service connection to notice user
 const socket = connectToWebsocketService('API dev server');

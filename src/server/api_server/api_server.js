@@ -7,7 +7,7 @@ import actionCreators from '../../shared/state/actionCreators';
 import queryDatabase, { initMiddleware } from './databaseMiddleware';
 import { beforeQuery, afterQuery } from './lifecycleMethods';
 import { createReason } from './apiUtils.js';
-import log, { logError, logRequest } from '../../shared/utils/logger';
+import { logApi, logError, logRequest, logStart, logWarning } from '../../shared/utils/logger';
 import { addJWTAuthStrategyTo, createSession } from '../utils/authUtils';
 import { openConnection, createDatabase, createTables, dropDatabase } from './databaseUtils';
 
@@ -17,12 +17,13 @@ import { openConnection, createDatabase, createTables, dropDatabase } from './da
 
 const server = new Hapi.Server();
 const port = config.services.api.port;
+const log = logApi;
 
 server.connection({ port });
 
 // Logs request info
 server.ext('onRequest', (request, reply) => {
-  logRequest('API', request);
+  logRequest(log, request);
   reply.continue();
 });
 
@@ -60,7 +61,7 @@ server.register(hapiAuthJWT, err => {
           let userId;
           if (request.auth.isAuthenticated) {
             userId = request.auth.credentials.id;
-            log('API', 'Auth:', userId);
+            log('Auth:', userId);
           }
           
           // Common keys creation, maybe not at the best place
@@ -96,7 +97,7 @@ server.register(hapiAuthJWT, err => {
                 
                 response.send(); // Bon voyage !
                 
-                log('API', 'Response sent:', response.statusCode);
+                log('Response sent:', response.statusCode);
               },
               
               handleError.bind(null, 'afterQuery')
@@ -109,10 +110,10 @@ server.register(hapiAuthJWT, err => {
           function handleError(origin, reason) {
             
             const err = reason.err;
-            let msg = reason.msg || '';
-            let code = reason.code || 500;
+            const msg = reason.msg || '';
+            const code = reason.code || 500;
             
-            log('!!! Error while API', origin);
+            logWarning('Error while API', origin);
             logError(msg, err);
             log('Replying', code);
             
@@ -139,7 +140,7 @@ server.register(hapiAuthJWT, err => {
     
     server.start(err => {
       if (err) logError('API server.start', err);
-      log('.:.', 'API listening on port', port);
+      logStart('API listening on port', port);
     });
   });
 });

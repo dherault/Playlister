@@ -1,6 +1,12 @@
 import { routeActions } from 'react-router-redux';
 import ac from '../shared/state/actionCreators';
-import log from '../shared/utils/logger';
+import { createLogger } from '../shared/utils/logger';
+
+const log = createLogger({
+  prefix: '.E.',
+  textClient: 'White',
+  backgroundClient: 'Gold',
+});
 
 const goToUserProfile = (state, action, dispatch) => dispatch(routeActions.push('/@' + action.payload.username));
 
@@ -44,7 +50,7 @@ export default function registerSideEffects(store, ...additionnalSideEffects) {
       const action = records[i];
       const se = finalSideEffects[action.type];
       if (se) {
-        log('.E.', 'Found side effect for', action.type);
+        log('Found side effect for', action.type);
         se(state, action, dispatch);
       }
     }

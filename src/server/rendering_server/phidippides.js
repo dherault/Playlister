@@ -1,4 +1,9 @@
-import logg from '../../shared/utils/logger';
+import { createLogger } from '../../shared/utils/logger';
+
+const logger = createLogger({
+  prefix: '.P.',
+  chalk: 'bgBlue',
+});
 
 export default function phidippides(store, renderProps) {
   
@@ -38,13 +43,13 @@ export default function phidippides(store, renderProps) {
   
   const nTasks = tasks.length;
   if (!nTasks) return Promise.resolve();
-  logg(`.P. Resolving  ${nTasks} ${nTasks > 1 ? 'tasks:' : 'task:'} ${tasks.map(task => task.id)}`);
+  logger(`Resolving  ${nTasks} ${nTasks > 1 ? 'tasks:' : 'task:'} ${tasks.map(task => task.id)}`);
   
   return clearTasks(tasks);
   
 
   function log(...messages) {
-    if (VERBOSE) logg('.P.', ...messages);
+    if (VERBOSE) return logger(...messages);
   }
   
   

@@ -2,7 +2,7 @@ import Hapi from 'hapi';
 import inert from 'inert';
 
 import config from '../../config';
-import log from '../../shared/utils/logger';
+import { logStart } from '../../shared/utils/logger';
 
 /*
   A super-classic development-only static server 
@@ -31,7 +31,7 @@ server.register(inert, err => {
   
   server.start(err => {
     if (err) throw err;
-    log('.:. Static server listening on port', port);
+    logStart('Static server listening on port', port);
   });
   
 });
