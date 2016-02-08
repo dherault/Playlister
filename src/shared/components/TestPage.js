@@ -203,6 +203,12 @@ class TestPage extends React.Component {
         </section>
         
         <section>
+          <h2>Failed validation</h2>
+          <button onClick={() => props.dispatch(ac.readAll({ yolo: true }))}>This should fail on client</button>
+          <button onClick={() => window.fetch(config.services.api.url + 'readAll?yolo=true')}>This should fail on server</button>
+        </section>
+        
+        <section>
           <h2>KVS server</h2>
           <input 
             type="text" 

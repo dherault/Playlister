@@ -26,6 +26,12 @@ let config = {
       // strictHeader: true   // don't allow violations of RFC 6265
     },
   },
+  validations: {
+    defaultValidationOptions: {
+      stripUnknown: true, // Will strip unknown keys from params
+    },
+    minPasswordLength: 1, // Dev only
+  },
   services: {
     rendering: {
       port: 3000

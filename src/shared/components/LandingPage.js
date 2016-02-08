@@ -3,6 +3,9 @@ import { Link } from 'react-router';
 import { connect } from 'react-redux';
 
 import ac from '../state/actionCreators';
+import config from '../../config';
+
+const { minPasswordLength } = config.validations;
 
 class LandingPage extends React.Component {
   
@@ -34,7 +37,7 @@ class LandingPage extends React.Component {
     console.log('submit');
     e.preventDefault();
     
-    if (this.state.step === 'email' && this.state.password.length >= 8) {
+    if (this.state.step === 'email' && this.state.password.length >= minPasswordLength) {
       const { email, password } = this.state;
       this.props.dispatch(ac.login({ email, password }));
     }
@@ -84,13 +87,13 @@ class LandingPage extends React.Component {
           <input 
             ref="passwordInput"
             type="password"
-            placeholder="Min. 8 characters" 
+            placeholder={`Min. ${minPasswordLength} characters`}
             value={this.state.password}
             onChange={this.handlePasswordInputChange.bind(this)}
             onEnterKeyDown={this.handleFormSubmit.bind(this)}
           />
         
-          <button disabled={this.state.password.length < 8} onClick={this.handleFormSubmit.bind(this)}>Enter</button>
+          <button disabled={this.state.password.length < minPasswordLength} onClick={this.handleFormSubmit.bind(this)}>Enter</button>
         </div>
       </div>
         

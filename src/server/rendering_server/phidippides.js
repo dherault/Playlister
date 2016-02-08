@@ -75,7 +75,6 @@ export default function phidippides(store, renderProps) {
     });
   }
   
-  
   function performOneTask(task) {
     
     // A rejection here makes clearTasks reject and therefore phidippides reject, thus 500

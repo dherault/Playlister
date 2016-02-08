@@ -1,4 +1,5 @@
 import isServer from './isServer';
+import isPost from './isPost';
 import isPlainObject from 'lodash/isPlainObject';
 
 function checkStatus(response) {
@@ -14,12 +15,11 @@ export default function customFetch(url, params, options={}) {
   // Universal fetch is ugly for now
   const fetch = isServer ? require('node-fetch') : window.fetch;
   
-  const m = options.method ? options.method.toLowerCase() : 'get';
-  const isPost = m === 'post' || m === 'put';
+  const method = options.method ? options.method : 'get';
   
   let urlWithQuery = url;
   
-  if (isPost) {
+  if (isPost(method)) {
     options.body = JSON.stringify(params);
     options.headers = options.headers || {};
     options.headers['Content-Type'] = 'application/json'; // If bug maybe : application/json;charset=UTF-8

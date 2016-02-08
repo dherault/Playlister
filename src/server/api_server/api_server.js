@@ -8,6 +8,7 @@ import queryDatabase, { initMiddleware } from './databaseMiddleware';
 import { beforeQuery, afterQuery } from './lifecycleMethods';
 import { createReason } from './apiUtils.js';
 import { logApi, logError, logRequest, logStart, logWarning } from '../../shared/utils/logger';
+import isPost from '../../shared/utils/isPost';
 import { addJWTAuthStrategyTo, createSession } from '../utils/authUtils';
 import { openConnection, createDatabase, createTables, dropDatabase } from './databaseUtils';
 
@@ -38,25 +39,34 @@ server.register(hapiAuthJWT, err => {
   for (let acKey in actionCreators) {
     
     const getShape = actionCreators[acKey].getShape;
-    const { intention, method, path, auth } = getShape ? getShape() : {};
+    const { intention, method, path, auth, validationSchema, validationOptions } = getShape ? getShape() : {};
     
-    if (intention && method && path) {
+    if (intention && method) {
       
       // Lifecycle methods
       const before = beforeQuery[intention] || ((req, res, params) => Promise.resolve(params));
       const after  = afterQuery[intention]  || ((req, res, params, result) => Promise.resolve(result));
       
+      // In a request object, params's location depends on the HTTP method
+      const paramsKey = isPost(method) ? 'payload' : 'query';
+      
       server.route({
         method, 
-        path: '/' + path,
+        path: '/' + (path || intention),
         config: { 
-          auth: auth ? 'jwt' : false, // No auth mode like 'try', it's strict or nothing
-          cors: { credentials: true }, // Allows CORS requests to be made with credentials
+          auth: auth ? 'jwt' : false,   // No auth mode like 'try', it's strict or nothing
+          cors: { credentials: true },  // Allows CORS requests to be made with credentials
+          validate: {                   // Super simple validations
+            [paramsKey]: (params, options, next) => {
+              if (!validationSchema) return next(null, params);
+              validationSchema.validate(params, validationOptions || config.validations.defaultValidationOptions, next);
+            }
+          }
         },
         handler: (request, reply) => {
           
           const response = reply.response().hold();
-          const params = method === 'post' || method === 'put' ? request.payload : request.query;
+          const params = request[paramsKey];
           
           let userId;
           if (request.auth.isAuthenticated) {

@@ -39,9 +39,16 @@ const _ = console.log;
 // const b= [a, a];
 // _(Array.from(new Set(b))); // :)
 
-const x = Promise.resolve();
-const y = Promise.resolve(true);
+// const x = Promise.resolve();
+// const y = Promise.resolve(true);
 
-const a = [x, x, y, x];
+// const a = [x, x, y, x];
 
-_(a);
+// _(a);
+
+// const x = Promise.resolve();
+// const y = Promise.resolve(true);
+
+// const a = [x, x, y, x];
+
+// Promise.all(a).then(r => _(r.some(r => r)))

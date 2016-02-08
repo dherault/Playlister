@@ -10,7 +10,7 @@ const log = createLogger({
 });
 
 const reducers = {
-  users: (state={}, { type, params, payload }) => {
+  users: (state={}, { type, params, payload }) => { // Declaring those 3 variables everytime is only for dev purposes
     
     log(type); // keep this line in the first reducer
     
@@ -30,7 +30,7 @@ const reducers = {
     }
   },
   
-  session: (state={}, { type, params, payload }) => {
+  session: (state={}, { type, payload }) => {
     switch (type) {
       
       case 'SUCCESS_LOGIN':
@@ -45,6 +45,17 @@ const reducers = {
     }
   },
   
+  lastInvalidAction: (state={}, action) => {
+    
+    if (action.type.startsWith('INVALID')) {
+      return action;
+    } else if (action.type.startsWith('SUCCESS') && action.intention === state.intention) {
+      return {};
+    } else {
+      return state;
+    }
+  },
+  
   // Side effects and logging reducers
   // lastAction: (state={}, action) => action,
   records: (state=[], action) => [...state, Object.assign({ date: new Date().getTime() }, action)],
@@ -52,9 +63,9 @@ const reducers = {
 
 // Adds default reduce cases for defined models
 for (let model in definitions) {
-  const np = definitions[model].pluralName;
-  const reducer = reducers[np] || ((s={}, a) => s);
-  reducers[np] = enhanceCRUD(model, reducer);
+  const name = definitions[model].pluralName;
+  const reducer = reducers[name] || ((s={}, a) => s);
+  reducers[name] = enhanceCRUD(model, reducer);
 }
 
 export default reducers;
