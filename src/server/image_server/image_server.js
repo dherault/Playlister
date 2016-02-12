@@ -3,7 +3,7 @@ import uuid from 'uuid';
 
 import config from '../../config';
 import Aquarelle from './aquarelle';
-import { createLogger, logError, logStart } from '../../shared/utils/logger';
+import { createLogger, logError, logStart, logRequest } from '../../shared/utils/logger';
 
 /*
   An HTTP service able to generate random profile pictures
@@ -22,6 +22,12 @@ const profilePictureGenerator = new Aquarelle(imagesDir + 'base');
 
 server.connection({ port });
 
+// Logs request info
+server.ext('onRequest', (request, reply) => {
+  logRequest(log, request);
+  reply.continue();
+});
+
 server.route({
   method: 'get', 
   path: '/random/{size}',
@@ -29,26 +35,36 @@ server.route({
   handler: (request, reply) => {
     
     const response = reply.response().hold();
-    const name = uuid.v4() + '.png';
-    const width = request.params.size;
     
-    log('Get /random/', width);
+    generateImage(request.params.size).then(data => {
+      response.source = data;
+      response.send();
+    })
+    .catch(err => {
+      logError('Image server /random', err);
+      response.statusCode = 500;
+      response.send();
+    });
+  }
+});
+
+server.route({
+  method: 'get', 
+  path: '/random/test/{size}',
+  config: { cors: true }, // For the test page to make CORS calls
+  handler: (request, reply) => {
     
-    profilePictureGenerator
-      .generateFile(imagesDir + 'generated/' + name, { width })
-      .then(({ originalName }) => {
-        response.source = { 
-          name, 
-          originalName, 
-          url: assetUrl + 'generated/' + name,
-          originalUrl: assetUrl + 'base/' + originalName 
-        };
-        response.send();
-      }, err => {
-        logError('Image server /random', err);
-        response.statusCode = 500;
-        response.send();
-      });
+    const response = reply.response().hold();
+    
+    generateImage(request.params.size).then(data => {
+      response.source = `<html><body><img src="${data.url}"/><br/><br/><img src="${data.originalUrl}"/></body></html>`;
+      response.send();
+    })
+    .catch(err => {
+      logError('Image server /random/test', err);
+      response.statusCode = 500;
+      response.send();
+    });
   }
 });
   
@@ -57,3 +73,15 @@ server.start(err => {
   logStart('Image server listening on port', port);
 });
   
+function generateImage(width=200, height) {
+  
+  const name = uuid.v4() + '.png';
+  
+  return profilePictureGenerator.generateFile(imagesDir + 'generated/' + name, { width, height })
+  .then(({ originalName }) => ({
+    name, 
+    originalName, 
+    url: assetUrl + 'generated/' + name,
+    originalUrl: assetUrl + 'base/' + originalName 
+  }));
+}

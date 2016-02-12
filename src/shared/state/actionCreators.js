@@ -22,7 +22,7 @@ const apiUrl = config.services.api.url;
 const actionCreators = {
   
   login: cac({
-    intention:  'login', // The ac's name, its intention and its path are redundant, to be fixed ?
+    intention:  'login', // The ac's name, its intention and its path are redundant, to be fixed ? --> path defaults to intention
     method:     'post',
     auth:       false,
     validationSchema: yup.object().shape({

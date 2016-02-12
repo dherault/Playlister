@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { render } from 'react-dom';
 
 import createApp from '../shared/createApp';
 import registerSideEffects from './registerSideEffects';
@@ -13,7 +13,7 @@ logStart('Hello client!');
 const { store, userInterface } = createApp(window.STATE_FROM_SERVER || {});
 
 // User interface rendering
-ReactDOM.render(
+render(
   userInterface,
   document.getElementById('mountNode'),
   () => log('App rendered')

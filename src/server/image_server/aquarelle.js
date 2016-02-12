@@ -4,7 +4,7 @@ import { isNumeric } from '../../shared/utils/numberUtils';
 
 // Use this to enable/disable logging
 function log(...msg) {
-  if (0) console.log(...msg);
+  if (1) console.log(...msg);
 }
 
 export default class Aquarelle {
@@ -64,49 +64,38 @@ export default class Aquarelle {
   
   // Validates options, applies defaults and waits for baseDir scan to be over before calling the main loop
   // Returns a valid thumbnail
-  _generateAGoodPicture(options) {
+  _generateImage(options) {
     
-    return new Promise((resolve, reject) => {
-      
-      const errors = [];
-      
-      // Assumes all options are numeric
-      const params = Object.assign({}, options);
-      for (let key in params) {
-        params[key] = parseInt(params[key], 10);
-      }
-      
-      const { width, height, minBrightness, maxBrightness, minSD, maxIterations } = params;
-      
-      if (minSD && !isNumeric(minSD)) errors.push('Invalid minSD: ' + minSD);
-      if (!width || !isNumeric(width)) errors.push('Invalid width: ' + width);
-      if (height && !isNumeric(height)) errors.push('Invalid height: ' + height);
-      if (minBrightness && !isNumeric(minBrightness)) errors.push('Invalid minBrightness: ' + minBrightness);
-      if (maxBrightness && !isNumeric(maxBrightness)) errors.push('Invalid maxBrightness: ' + maxBrightness);
-      if (maxIterations && !isNumeric(maxIterations)) errors.push('Invalid maxIterations: ' + maxIterations);
-      
-      if (errors.length) return reject(errors.join('; '));
-      
-      options.minSD = minSD || 10;
-      options.minBrightness = minBrightness || 30;
-      options.maxBrightness = maxBrightness || 80;
-      options.maxIterations = maxIterations || 15;
-      
-      this.ready.then(
-        () => this._generateOnePicture(options, 1).then(resolve, reject),
-        reject
-      );
-    });
+    const errors = [];
+    const { width, height, minBrightness, maxBrightness, minSD, maxIterations } = options;
+    
+    if (minSD && !isNumeric(minSD)) errors.push('Invalid minSD: ' + minSD);
+    if (!width || !isNumeric(width)) errors.push('Invalid width: ' + width);
+    if (height && !isNumeric(height)) errors.push('Invalid height: ' + height);
+    if (minBrightness && !isNumeric(minBrightness)) errors.push('Invalid minBrightness: ' + minBrightness);
+    if (maxBrightness && !isNumeric(maxBrightness)) errors.push('Invalid maxBrightness: ' + maxBrightness);
+    if (maxIterations && !isNumeric(maxIterations)) errors.push('Invalid maxIterations: ' + maxIterations);
+    
+    if (errors.length) return Promise.reject(errors.join('; '));
+    
+    options.minSD = minSD || 15;
+    options.minBrightness = minBrightness || 30;
+    options.maxBrightness = maxBrightness || 80;
+    options.maxIterations = maxIterations || 15;
+    
+    return this.ready.then(() => this._generateValidImage(options, 1));
   }
   
-  // Will loop until a picture passes the quality check
-  _generateOnePicture(options, cycleCount) {
+  // Will loop until a image passes the quality check
+  _generateValidImage(options, cycleCount) {
     
-    log('_generateOnePicture', cycleCount);
+    log('_generateValidImage', cycleCount);
     
     return new Promise((resolve, reject) => {
       
       if (cycleCount > options.maxIterations) return reject('Too many cycles, check your base images');
+      
+      const tryAgain = () => this._generateValidImage(options, cycleCount + 1).then(resolve, reject);
       
       const filePath = this.fileList[Math.floor(Math.random() * this.fileCount)];
       const image = gm(filePath)
@@ -118,7 +107,8 @@ export default class Aquarelle {
         const newWidth = options.width;
         const newHeight = options.height || newWidth;
         
-        if (newWidth > width || newHeight > height) return reject(`Given dimensions (${newWidth}x${newHeight}) are larger than original file's (${width}x${height}) - ${filePath}`);
+        // if (newWidth > width || newHeight > height) return reject(`Given dimensions (${newWidth}x${newHeight}) are larger than original file's (${width}x${height}) - ${filePath}`);
+        if (newWidth > width || newHeight > height) return tryAgain();
         
         const x = Math.floor(Math.random() * (width - newWidth));
         const y = Math.floor(Math.random() * (height - newHeight));
@@ -132,31 +122,31 @@ export default class Aquarelle {
           .identify((err, metadata) => {
             if (err) return reject(`Error while identifying cropped image ${filePath}: ${err.message}`);
             
-            let minOfSD = 0;
-            let brightness = 0;
+            const means = [];
+            const standardDeviations = [];
             const { minSD, minBrightness, maxBrightness } = options;
             const { Red, Green, Blue } = metadata['Channel Statistics'];
             
-            if (Red && Green && Blue) {
-              
-              const means = [];
-              const standardDeviations = [];
-              [Red, Green, Blue].forEach(channel => {
-                means.push(this._extractData(channel.Mean));
-                standardDeviations.push(this._extractData(channel['Standard Deviation']));
-              });
-              
-              const [a, b, c] = means;
-              brightness = Math.round(Math.sqrt(0.299 * a * a + 0.587 * b * b + 0.144 * c * c));
-              minOfSD = Math.min.apply(Math, standardDeviations);
-            }
+            if (!(Red && Green && Blue)) return tryAgain();
+            
+            [Red, Green, Blue].forEach(channel => {
+              means.push(this._extractData(channel.Mean));
+              standardDeviations.push(this._extractData(channel['Standard Deviation']));
+            });
+            
+            const [a, b, c] = means;
+            const brightness = Math.round(Math.sqrt(0.299 * a * a + 0.587 * b * b + 0.144 * c * c));
+            const minOfSD = Math.min.apply(Math, standardDeviations);
+            
+            log('minOfSD', minOfSD);
+            log('brightness', brightness);
             
             // Quality condition, v2
             if (minOfSD > minSD && brightness > minBrightness && brightness < maxBrightness) {
               const pathArray = filePath.split('/');
               resolve({ thumbnail, originalName: pathArray[pathArray.length - 1] });
             }
-            else this._generateOnePicture(options, cycleCount + 1).then(resolve, reject);
+            else tryAgain();
           });
         });
       });
@@ -168,7 +158,7 @@ export default class Aquarelle {
     
     return new Promise((resolve, reject) => {
       
-      this._generateAGoodPicture(options).then(
+      this._generateImage(options).then(
         ({ thumbnail, originalName }) => thumbnail.write(newFilePath, err => {
           if (err) return reject(`Error while saving new file: ${err.message}`);
           
@@ -184,9 +174,9 @@ export default class Aquarelle {
     
     return new Promise((resolve, reject) => {
       
-      this._generateAGoodPicture(options).then(
+      this._generateImage(options).then(
         ({ thumbnail, originalName }) => thumbnail.stream((err, stdout, stderr) => {
-          if (err) return reject(`Error while streaming new picture: ${err.message}`);
+          if (err) return reject(`Error while streaming new image: ${err.message}`);
           
           resolve({stdout, stderr, originalName});
         }),

@@ -79,7 +79,7 @@ function enhanceCRUD(model, reducer) {
     const newState = Object.assign({}, reducer(state, action));
     if (!isEqual(state, newState)) return newState;
     
-    const ns = definitions[model].name.toUpperCase();
+    const ns = model.toUpperCase();
     const np = definitions[model].pluralName;
     
     const { type, params, payload } = action;

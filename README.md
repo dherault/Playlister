@@ -1,24 +1,9 @@
 # Playlister
 
-WIP
+Hapi / RethinkDb <-- http / websocket --> Redux / React
 
-To do :
+I closed this project in favor of a serverless architecture.
+It features several back ends (rendering, API, redis, websocket, image transformation, ...) and focuses on DX (developper experience). 
+This web app has no custom features, only login/logout and so on. It is very opiniated (ex: the API gets constructed from actionCreators, lots of defaults, etc...).
 
-- [x] Implement fetch instead of xhr
-- [x] Handle 404s once and for all in stores
-- [x] Migrate from MongoDb to RethinkDb
-- [x] Use Redis as key/value store
-- [x] Rewrite logger from scratch
-- [x] API validations
-- [ ] Cookies config
-- [ ] Error testing (promise catching)
-- [ ] Do something for webpack
-- [ ] Refactor API
-- [ ] Refactor and comment
-- [ ] Client-side login validation and errors
-- [ ] Bundle optimization
-- [ ] Optimistic reducers
-- [ ] refactor Aquarelle
-- [ ] cache for API and rendering server
-- [ ] Implement rabbitMQ :)
-- 
+Licence: CC0 (public domain)

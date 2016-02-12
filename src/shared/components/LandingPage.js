@@ -67,7 +67,7 @@ class LandingPage extends React.Component {
     return <div style={wrapperStyle}>
       
       <div style={signStyle}>
-        <div> Sign in/up with  </div>
+        <div>Sign in/up with</div>
         
         <div style={buttonsStyle}>
           <button style={buttonStyle} onClick={this.handleMailClick.bind(this)}>Mail</button>

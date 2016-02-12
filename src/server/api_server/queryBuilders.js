@@ -55,9 +55,8 @@ function createDefaultCRUDBuilders() {
   const builders = {};
   
   for (let model in definitions) {
-    const { name, pluralName } = definitions[model];
-    const suffix = capitalizeFirstChar(name);
-    const t = r.table(pluralName);
+    const suffix = capitalizeFirstChar(model);
+    const t = r.table(definitions[model].pluralName);
     
     builders['read' + suffix] = (c, { id }) => t.getAll(id) // getAll not get, see https://github.com/rethinkdb/rethinkdb/issues/3381
     .without(...forbiddenKeys)
